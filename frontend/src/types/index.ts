@@ -1,0 +1,182 @@
+// Backend DTO/enum'larını birebir yansıtan TypeScript tipleri.
+// Enum'lar backend'de string olarak serileştirilir.
+
+export type Gender = 'Male' | 'Female' | 'Other';
+export type ActivityLevel = 'Sedentary' | 'Light' | 'Moderate' | 'Active' | 'VeryActive';
+export type GoalType = 'LoseWeight' | 'MaintainWeight' | 'GainMuscle';
+export type MealType = 'Breakfast' | 'Lunch' | 'Dinner' | 'Snack';
+export type ExerciseCategory = 'Cardio' | 'Strength' | 'Flexibility' | 'Sports';
+export type MuscleGroup =
+  | 'FullBody' | 'Chest' | 'Back' | 'Legs' | 'Shoulders' | 'Arms' | 'Core' | 'Cardio';
+export type InsightSeverity = 'Positive' | 'Info' | 'Warning';
+export type InsightCategory =
+  | 'Calories' | 'Protein' | 'Macros' | 'Workout' | 'Weight' | 'Consistency';
+
+export interface User {
+  id: number;
+  fullName: string;
+  email: string;
+  age: number;
+  gender: Gender;
+  heightCm: number;
+  currentWeightKg: number;
+  activityLevel: ActivityLevel;
+  goalType: GoalType;
+  targetWeightKg?: number | null;
+  dailyCalorieGoal: number;
+  dailyProteinGoal: number;
+  dailyWaterGoalMl: number;
+  bmi: number;
+}
+
+export interface AuthResponse {
+  token: string;
+  expiresAt: string;
+  user: User;
+}
+
+export interface RegisterRequest {
+  fullName: string;
+  email: string;
+  password: string;
+  age: number;
+  gender: Gender;
+  heightCm: number;
+  currentWeightKg: number;
+  activityLevel: ActivityLevel;
+  goalType: GoalType;
+  targetWeightKg?: number | null;
+}
+
+export interface UpdateProfileRequest {
+  fullName: string;
+  age: number;
+  gender: Gender;
+  heightCm: number;
+  currentWeightKg: number;
+  activityLevel: ActivityLevel;
+  goalType: GoalType;
+  targetWeightKg?: number | null;
+  dailyCalorieGoal?: number | null;
+  dailyProteinGoal?: number | null;
+  dailyWaterGoalMl?: number | null;
+}
+
+export interface Food {
+  id: number;
+  name: string;
+  brand?: string | null;
+  category?: string | null;
+  caloriesPer100g: number;
+  proteinPer100g: number;
+  carbsPer100g: number;
+  fatPer100g: number;
+}
+
+export interface NutritionLog {
+  id: number;
+  foodId: number;
+  foodName: string;
+  mealType: MealType;
+  amountGrams: number;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+  loggedAt: string;
+}
+
+export interface MealGroup {
+  mealType: MealType;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+  items: NutritionLog[];
+}
+
+export interface DailyNutritionSummary {
+  date: string;
+  totalCalories: number;
+  totalProtein: number;
+  totalCarbs: number;
+  totalFat: number;
+  calorieGoal: number;
+  proteinGoal: number;
+  meals: MealGroup[];
+}
+
+export interface Exercise {
+  id: number;
+  name: string;
+  category: ExerciseCategory;
+  muscleGroup: MuscleGroup;
+  caloriesBurnedPerMinute: number;
+}
+
+export interface WorkoutLog {
+  id: number;
+  exerciseId: number;
+  exerciseName: string;
+  category: ExerciseCategory;
+  muscleGroup: MuscleGroup;
+  durationMinutes?: number | null;
+  sets?: number | null;
+  reps?: number | null;
+  weightKg?: number | null;
+  caloriesBurned: number;
+  performedAt: string;
+}
+
+export interface WeightEntry {
+  id: number;
+  weightKg: number;
+  bodyFatPercentage?: number | null;
+  recordedAt: string;
+}
+
+export interface DailyCaloriePoint {
+  date: string;
+  calories: number;
+  goal: number;
+  burnedCalories: number;
+}
+
+export interface WeightPoint {
+  date: string;
+  weightKg: number;
+  bodyFatPercentage?: number | null;
+}
+
+export interface MacroBreakdown {
+  protein: number;
+  carbs: number;
+  fat: number;
+}
+
+export interface Dashboard {
+  today: DailyNutritionSummary;
+  waterGoalMl: number;
+  currentWeightKg?: number | null;
+  targetWeightKg?: number | null;
+  bmi: number;
+  workoutsThisWeek: number;
+  caloriesBurnedThisWeek: number;
+  todayMacros: MacroBreakdown;
+  calorieTrend: DailyCaloriePoint[];
+  weightTrend: WeightPoint[];
+}
+
+export interface Insight {
+  category: InsightCategory;
+  severity: InsightSeverity;
+  title: string;
+  message: string;
+  metric?: string | null;
+}
+
+export interface InsightsResponse {
+  generatedAt: string;
+  daysAnalyzed: number;
+  insights: Insight[];
+}

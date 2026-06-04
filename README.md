@@ -1,0 +1,143 @@
+# ⚡ FitMetrics
+
+**Yapay zekâ destekli beslenme, antrenman ve sağlık takip platformu.**
+
+Kullanıcıların beslenme, egzersiz ve vücut ölçülerini tek platformda toplayıp; kalori dengesi, makro dağılımı, kilo trendi ve antrenman dengesi üzerine **kişiselleştirilmiş analizler** üreten full-stack bir web uygulaması.
+
+> Clean Architecture + SOLID prensipleriyle, ASP.NET Core 9 Web API ve React + TypeScript ile geliştirilmiştir.
+
+---
+
+## 🚀 Özellikler
+
+- **Kimlik doğrulama**: JWT tabanlı kayıt / giriş, BCrypt ile parola hash'leme
+- **Akıllı hedefler**: Kayıtta Mifflin-St Jeor (BMR) + aktivite + hedefe göre otomatik günlük kalori & protein hedefi
+- **Beslenme takibi**: 30 besinlik hazır katalog, gram bazlı kalori/makro hesabı, öğün gruplama (kahvaltı/öğle/akşam/ara)
+- **Antrenman takibi**: 24 egzersizlik katalog (kas grubu + kategori), set/tekrar/ağırlık veya süre girişi, otomatik kalori yakım hesabı
+- **İlerleme takibi**: Kilo ve vücut yağı geçmişi, Chart.js grafikleri
+- **AI Insights motoru**: Son 14–21 günü analiz ederek üretilen öneriler
+  - Kalori dengesi (açık/fazla → aylık yağ kaybı/artış projeksiyonu)
+  - Protein yeterliliği (hedefe göre % sapma)
+  - Makro dağılımı
+  - Antrenman dengesi (ihmal edilen kas grubu tespiti)
+  - Kilo trendi (hedefe göre haftalık değişim)
+  - Kayıt tutarlılığı
+- **Dashboard**: Özet kartları + 14 günlük kalori trendi + makro dağılımı + kilo grafiği
+
+---
+
+## 🏗️ Mimari (Clean Architecture)
+
+```
+FitMetrics/
+├── backend/
+│   ├── FitMetrics.Domain          # Entity'ler, enum'lar (bağımlılık yok)
+│   ├── FitMetrics.Application      # DTO, servisler, validation, AI motoru, arayüzler
+│   ├── FitMetrics.Infrastructure   # EF Core, DbContext, JWT, BCrypt, migration
+│   └── FitMetrics.API              # Controller'lar, middleware, DI, Swagger
+└── frontend/                       # React + TypeScript + Tailwind + Chart.js
+```
+
+**Bağımlılık akışı:** `API → Application → Domain` ve `API → Infrastructure → Application → Domain`
+Application katmanı, EF Core'a `IApplicationDbContext` soyutlaması üzerinden bağlıdır; somut `AppDbContext` Infrastructure'dadır.
+
+---
+
+## 🛠️ Teknolojiler
+
+| Katman | Teknolojiler |
+| --- | --- |
+| Backend | ASP.NET Core 9 Web API, EF Core 9, SQL Server (LocalDB) |
+| Kimlik | JWT (HMAC-SHA256), BCrypt.Net |
+| Eşleme / Doğrulama | Mapster, FluentValidation |
+| Frontend | React 19, TypeScript, Vite, Tailwind CSS v4 |
+| Grafik / HTTP | Chart.js + react-chartjs-2, Axios, React Router |
+| API Dokümantasyonu | Swagger / OpenAPI (Swashbuckle) |
+
+> **Not:** Spec'te AutoMapper belirtilmişti; ancak AutoMapper v15+ ticari lisansa geçti ve ücretsiz sürümlerde yüksek önem dereceli bir güvenlik açığı (GHSA-rvv3-g6hj-g44x) bulunuyor. Bu nedenle MIT lisanslı, daha hızlı ve birebir muadili olan **Mapster** tercih edildi.
+
+---
+
+## 📋 Gereksinimler
+
+- [.NET SDK 9.x](https://dotnet.microsoft.com/download)
+- [Node.js 20+](https://nodejs.org/)
+- SQL Server **LocalDB** (`(localdb)\MSSQLLocalDB`) — Visual Studio veya SQL Server Express ile gelir
+
+---
+
+## ▶️ Çalıştırma
+
+### 1) Backend (API)
+
+```bash
+cd backend/FitMetrics.API
+dotnet run
+```
+
+- API: **http://localhost:5072**
+- Swagger UI: **http://localhost:5072/swagger**
+- Veritabanı ve seed verisi (besinler + egzersizler) uygulama açılışında otomatik oluşturulur (`Database.Migrate()`).
+
+### 2) Frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+- Uygulama: **http://localhost:5173**
+- Vite, `/api` isteklerini otomatik olarak backend'e (`localhost:5072`) yönlendirir (CORS gerektirmez).
+
+İlk kullanım: **Kayıt ol** → profil/hedef bilgilerini gir → beslenme & antrenman ekle → **Dashboard** ve **AI Insights** sayfalarında analizleri gör.
+
+---
+
+## 🔌 Başlıca API Uç Noktaları
+
+| Method | Endpoint | Açıklama |
+| --- | --- | --- |
+| POST | `/api/auth/register` | Kayıt (otomatik hedef hesaplama) |
+| POST | `/api/auth/login` | Giriş (JWT) |
+| GET | `/api/auth/me` | Mevcut kullanıcı |
+| GET/PUT | `/api/profile` | Profil görüntüle / güncelle |
+| GET | `/api/nutrition/foods` | Besin kataloğu (arama destekli) |
+| POST/DELETE | `/api/nutrition/logs` | Öğün ekle / sil |
+| GET | `/api/nutrition/summary?date=` | Günlük beslenme özeti |
+| GET | `/api/workout/exercises` | Egzersiz kataloğu |
+| POST/GET/DELETE | `/api/workout/logs` | Antrenman ekle / listele / sil |
+| POST/GET/DELETE | `/api/weight` | Kilo kaydı ekle / geçmiş / sil |
+| GET | `/api/dashboard` | Dashboard verisi |
+| GET | `/api/insights` | AI analizleri |
+
+Korumalı tüm uç noktalar `Authorization: Bearer <token>` başlığı bekler.
+
+---
+
+## 🧠 AI Insights Motoru Nasıl Çalışır?
+
+`InsightService`, kural tabanlı bir analiz motorudur (deterministik, açıklanabilir):
+
+1. Son 14 günün beslenme, 21 günün antrenman ve tüm kilo kayıtlarını çeker.
+2. TDEE'yi (Mifflin-St Jeor × aktivite faktörü) hesaplar.
+3. Ortalama günlük alım, protein yeterliliği, makro yüzdeleri, kas grubu dağılımı ve kilo trendini değerlendirir.
+4. Kullanıcının hedefine (kilo verme / koruma / kas kazanma) göre olumlu/bilgi/uyarı seviyesinde, sayısal temelli öneriler üretir.
+
+> Yapı, ileride bir LLM (ör. Claude API) entegrasyonuyla doğal dil önerilerine genişletilebilecek şekilde soyutlanmıştır.
+
+---
+
+## 🗺️ Yol Haritası (Premium)
+
+- [ ] Barkod ile ürün ekleme
+- [ ] Fotoğraftan yemek tanıma
+- [ ] LLM destekli akıllı öğün/program oluşturucu
+- [ ] PDF aylık ilerleme raporu
+- [ ] Diyetisyen/antrenör paneli
+
+---
+
+## 📄 Lisans
+
+Eğitim ve portföy amaçlı geliştirilmiştir.

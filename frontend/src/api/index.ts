@@ -1,0 +1,88 @@
+import client from './client';
+import type {
+  AuthResponse, Dashboard, DailyNutritionSummary, Exercise, Food, InsightsResponse,
+  MealType, NutritionLog, RegisterRequest, UpdateProfileRequest, User, WeightEntry, WorkoutLog,
+} from '../types';
+
+export interface CreateFoodRequest {
+  name: string;
+  brand?: string | null;
+  category?: string | null;
+  caloriesPer100g: number;
+  proteinPer100g: number;
+  carbsPer100g: number;
+  fatPer100g: number;
+}
+
+export interface CreateNutritionLogRequest {
+  foodId: number;
+  amountGrams: number;
+  mealType: MealType;
+  loggedAt?: string | null;
+}
+
+export interface CreateWorkoutLogRequest {
+  exerciseId: number;
+  durationMinutes?: number | null;
+  sets?: number | null;
+  reps?: number | null;
+  weightKg?: number | null;
+  performedAt?: string | null;
+}
+
+export interface CreateWeightEntryRequest {
+  weightKg: number;
+  bodyFatPercentage?: number | null;
+  recordedAt?: string | null;
+}
+
+export const authApi = {
+  login: (email: string, password: string) =>
+    client.post<AuthResponse>('/auth/login', { email, password }).then((r) => r.data),
+  register: (payload: RegisterRequest) =>
+    client.post<AuthResponse>('/auth/register', payload).then((r) => r.data),
+  me: () => client.get<User>('/auth/me').then((r) => r.data),
+};
+
+export const profileApi = {
+  get: () => client.get<User>('/profile').then((r) => r.data),
+  update: (payload: UpdateProfileRequest) =>
+    client.put<User>('/profile', payload).then((r) => r.data),
+};
+
+export const nutritionApi = {
+  getFoods: (search?: string) =>
+    client.get<Food[]>('/nutrition/foods', { params: { search } }).then((r) => r.data),
+  createFood: (payload: CreateFoodRequest) =>
+    client.post<Food>('/nutrition/foods', payload).then((r) => r.data),
+  addLog: (payload: CreateNutritionLogRequest) =>
+    client.post<NutritionLog>('/nutrition/logs', payload).then((r) => r.data),
+  deleteLog: (id: number) => client.delete(`/nutrition/logs/${id}`),
+  getSummary: (date?: string) =>
+    client.get<DailyNutritionSummary>('/nutrition/summary', { params: { date } }).then((r) => r.data),
+};
+
+export const workoutApi = {
+  getExercises: (search?: string) =>
+    client.get<Exercise[]>('/workout/exercises', { params: { search } }).then((r) => r.data),
+  addLog: (payload: CreateWorkoutLogRequest) =>
+    client.post<WorkoutLog>('/workout/logs', payload).then((r) => r.data),
+  deleteLog: (id: number) => client.delete(`/workout/logs/${id}`),
+  getLogs: (from?: string, to?: string) =>
+    client.get<WorkoutLog[]>('/workout/logs', { params: { from, to } }).then((r) => r.data),
+};
+
+export const weightApi = {
+  add: (payload: CreateWeightEntryRequest) =>
+    client.post<WeightEntry>('/weight', payload).then((r) => r.data),
+  history: () => client.get<WeightEntry[]>('/weight').then((r) => r.data),
+  remove: (id: number) => client.delete(`/weight/${id}`),
+};
+
+export const dashboardApi = {
+  get: () => client.get<Dashboard>('/dashboard').then((r) => r.data),
+};
+
+export const insightsApi = {
+  get: () => client.get<InsightsResponse>('/insights').then((r) => r.data),
+};

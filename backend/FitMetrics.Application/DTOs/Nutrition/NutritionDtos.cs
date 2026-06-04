@@ -1,0 +1,58 @@
+using FitMetrics.Domain.Enums;
+
+namespace FitMetrics.Application.DTOs.Nutrition;
+
+public record FoodDto(
+    int Id,
+    string Name,
+    string? Brand,
+    string? Category,
+    double CaloriesPer100g,
+    double ProteinPer100g,
+    double CarbsPer100g,
+    double FatPer100g);
+
+public record CreateFoodRequest(
+    string Name,
+    string? Brand,
+    string? Category,
+    double CaloriesPer100g,
+    double ProteinPer100g,
+    double CarbsPer100g,
+    double FatPer100g);
+
+public record CreateNutritionLogRequest(
+    int FoodId,
+    double AmountGrams,
+    MealType MealType,
+    DateTime? LoggedAt);
+
+public record NutritionLogDto(
+    int Id,
+    int FoodId,
+    string FoodName,
+    MealType MealType,
+    double AmountGrams,
+    double Calories,
+    double Protein,
+    double Carbs,
+    double Fat,
+    DateTime LoggedAt);
+
+public record MealGroupDto(
+    MealType MealType,
+    double Calories,
+    double Protein,
+    double Carbs,
+    double Fat,
+    List<NutritionLogDto> Items);
+
+public record DailyNutritionSummaryDto(
+    DateTime Date,
+    double TotalCalories,
+    double TotalProtein,
+    double TotalCarbs,
+    double TotalFat,
+    int CalorieGoal,
+    int ProteinGoal,
+    List<MealGroupDto> Meals);

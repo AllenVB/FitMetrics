@@ -1,0 +1,6 @@
+@FitMetrics.API_HostAddress = http://localhost:5072
+
+GET {{FitMetrics.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
