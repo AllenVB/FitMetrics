@@ -12,10 +12,13 @@ export type InsightSeverity = 'Positive' | 'Info' | 'Warning';
 export type InsightCategory =
   | 'Calories' | 'Protein' | 'Macros' | 'Workout' | 'Weight' | 'Consistency';
 
+export type UserRole = 'Member' | 'Dietitian';
+
 export interface User {
   id: number;
   fullName: string;
   email: string;
+  role: UserRole;
   age: number;
   gender: Gender;
   heightCm: number;
@@ -202,4 +205,26 @@ export interface MealPhotoResponse {
   estimatedProtein: number;
   estimatedCarbs: number;
   estimatedFat: number;
+}
+
+// ---- Barkod & Diyetisyen ----
+
+export interface BarcodeLookupResult {
+  barcode: string;
+  name: string;
+  brand?: string | null;
+  caloriesPer100g: number;
+  proteinPer100g: number;
+  carbsPer100g: number;
+  fatPer100g: number;
+}
+
+export interface ClientSummary {
+  id: number;
+  fullName: string;
+  email: string;
+  goalType: GoalType;
+  currentWeightKg: number;
+  bmi: number;
+  linkedAt: string;
 }

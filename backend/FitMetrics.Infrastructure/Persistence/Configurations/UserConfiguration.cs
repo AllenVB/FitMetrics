@@ -1,4 +1,5 @@
 using FitMetrics.Domain.Entities;
+using FitMetrics.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -15,6 +16,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.HasIndex(u => u.Email).IsUnique();
         builder.Property(u => u.PasswordHash).IsRequired().HasMaxLength(256);
 
+        builder.Property(u => u.Role).HasConversion<int>().HasDefaultValue(UserRole.Member);
         builder.Property(u => u.Gender).HasConversion<int>();
         builder.Property(u => u.ActivityLevel).HasConversion<int>();
         builder.Property(u => u.GoalType).HasConversion<int>();

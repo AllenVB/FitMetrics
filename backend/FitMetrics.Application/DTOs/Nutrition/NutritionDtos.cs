@@ -27,6 +27,16 @@ public record CreateNutritionLogRequest(
     MealType MealType,
     DateTime? LoggedAt);
 
+/// <summary>Barkod sorgusu sonucu (OpenFoodFacts). Henüz kaydedilmemiş, önizleme amaçlı.</summary>
+public record BarcodeLookupResult(
+    string Barcode,
+    string Name,
+    string? Brand,
+    double CaloriesPer100g,
+    double ProteinPer100g,
+    double CarbsPer100g,
+    double FatPer100g);
+
 public record NutritionLogDto(
     int Id,
     int FoodId,

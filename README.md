@@ -55,6 +55,7 @@ Application katmanı, EF Core'a `IApplicationDbContext` soyutlaması üzerinden 
 | API Dokümantasyonu | Swagger / OpenAPI (Swashbuckle) |
 | AI / Vision | Claude API (Anthropic Messages API, raw HttpClient) |
 | PDF Rapor | QuestPDF (Community) |
+| Barkod | OpenFoodFacts API + @zxing/browser (kamera tarama) |
 
 > **Not:** Spec'te AutoMapper belirtilmişti; ancak AutoMapper v15+ ticari lisansa geçti ve ücretsiz sürümlerde yüksek önem dereceli bir güvenlik açığı (GHSA-rvv3-g6hj-g44x) bulunuyor. Bu nedenle MIT lisanslı, daha hızlı ve birebir muadili olan **Mapster** tercih edildi.
 
@@ -130,6 +131,12 @@ veya `backend/FitMetrics.API/appsettings.json` → `Anthropic:ApiKey`. Varsayıl
 | GET | `/api/ai/coach` | Claude ile doğal dil koçluk |
 | POST | `/api/ai/analyze-meal-photo` | Claude vision ile fotoğraftan kalori/makro tahmini |
 | GET | `/api/reports/monthly` | PDF aylık ilerleme raporu |
+| GET | `/api/nutrition/barcode/{code}` | Barkoddan besin (OpenFoodFacts) |
+| POST | `/api/dietitian/enroll` | Diyetisyen moduna geç |
+| GET/POST | `/api/dietitian/clients` | Danışan listele / ekle |
+| DELETE | `/api/dietitian/clients/{id}` | Danışan bağını kaldır |
+| GET | `/api/dietitian/clients/{id}/dashboard` | Danışan paneli (yetkili) |
+| GET | `/api/dietitian/clients/{id}/insights` | Danışan AI analizleri (yetkili) |
 
 Korumalı tüm uç noktalar `Authorization: Bearer <token>` başlığı bekler.
 
@@ -156,9 +163,12 @@ Korumalı tüm uç noktalar `Authorization: Bearer <token>` başlığı bekler.
 - [x] Fotoğraftan yemek tanıma (Claude vision)
 - [x] PDF aylık ilerleme raporu (QuestPDF)
 
-**Sırada:**
-- [ ] Barkod ile ürün ekleme
-- [ ] Diyetisyen/antrenör paneli
+**Tamamlandı (Faz 3):**
+- [x] Barkod ile ürün ekleme (OpenFoodFacts + kamera tarama)
+- [x] Diyetisyen/antrenör paneli (rol tabanlı, danışan takibi + yetkilendirme)
+
+**Gelecek fikirleri:**
+- [ ] Push bildirimleri, çoklu dil, mobil uygulama
 
 ---
 

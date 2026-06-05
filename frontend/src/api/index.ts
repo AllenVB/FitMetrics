@@ -1,8 +1,8 @@
 import client from './client';
 import type {
-  AuthResponse, CoachResponse, Dashboard, DailyNutritionSummary, Exercise, Food, InsightsResponse,
-  MealPhotoResponse, MealPlanResponse, MealType, NutritionLog, RegisterRequest, UpdateProfileRequest,
-  User, WeightEntry, WorkoutLog,
+  AuthResponse, BarcodeLookupResult, ClientSummary, CoachResponse, Dashboard, DailyNutritionSummary,
+  Exercise, Food, InsightsResponse, MealPhotoResponse, MealPlanResponse, MealType, NutritionLog,
+  RegisterRequest, UpdateProfileRequest, User, WeightEntry, WorkoutLog,
 } from '../types';
 
 export interface CreateFoodRequest {
@@ -61,6 +61,8 @@ export const nutritionApi = {
   deleteLog: (id: number) => client.delete(`/nutrition/logs/${id}`),
   getSummary: (date?: string) =>
     client.get<DailyNutritionSummary>('/nutrition/summary', { params: { date } }).then((r) => r.data),
+  lookupBarcode: (code: string) =>
+    client.get<BarcodeLookupResult>(`/nutrition/barcode/${encodeURIComponent(code)}`).then((r) => r.data),
 };
 
 export const workoutApi = {
@@ -107,4 +109,16 @@ export const reportsApi = {
     const res = await client.get('/reports/monthly', { params: { year, month }, responseType: 'blob' });
     return res.data as Blob;
   },
+};
+
+export const dietitianApi = {
+  enroll: () => client.post<User>('/dietitian/enroll').then((r) => r.data),
+  clients: () => client.get<ClientSummary[]>('/dietitian/clients').then((r) => r.data),
+  addClient: (email: string) =>
+    client.post<ClientSummary>('/dietitian/clients', { email }).then((r) => r.data),
+  removeClient: (clientId: number) => client.delete(`/dietitian/clients/${clientId}`),
+  clientDashboard: (clientId: number) =>
+    client.get<Dashboard>(`/dietitian/clients/${clientId}/dashboard`).then((r) => r.data),
+  clientInsights: (clientId: number) =>
+    client.get<InsightsResponse>(`/dietitian/clients/${clientId}/insights`).then((r) => r.data),
 };

@@ -13,11 +13,13 @@ public class NutritionService : INutritionService
 {
     private readonly IApplicationDbContext _db;
     private readonly IMapper _mapper;
+    private readonly IFoodLookupClient _foodLookup;
 
-    public NutritionService(IApplicationDbContext db, IMapper mapper)
+    public NutritionService(IApplicationDbContext db, IMapper mapper, IFoodLookupClient foodLookup)
     {
         _db = db;
         _mapper = mapper;
+        _foodLookup = foodLookup;
     }
 
     public async Task<List<FoodDto>> GetFoodsAsync(string? search, CancellationToken ct = default)
@@ -117,6 +119,14 @@ public class NutritionService : INutritionService
             user.DailyCalorieGoal,
             user.DailyProteinGoal,
             meals);
+    }
+
+    public async Task<BarcodeLookupResult> LookupBarcodeAsync(string barcode, CancellationToken ct = default)
+    {
+        var trimmed = barcode.Trim();
+        var result = await _foodLookup.LookupByBarcodeAsync(trimmed, ct)
+                     ?? throw new NotFoundException($"'{trimmed}' barkodlu ürün bulunamadı.");
+        return result;
     }
 
     /// <summary>Bir öğün kaydını, besinin 100g değerlerini tüketilen gram miktarına ölçekleyerek DTO'ya çevirir.</summary>

@@ -1,6 +1,7 @@
 using FitMetrics.Application.Common.Interfaces;
 using FitMetrics.Application.Common.Settings;
 using FitMetrics.Infrastructure.Ai;
+using FitMetrics.Infrastructure.External;
 using FitMetrics.Infrastructure.Reports;
 using FitMetrics.Infrastructure.Persistence;
 using FitMetrics.Infrastructure.Security;
@@ -36,6 +37,13 @@ public static class DependencyInjection
 
         // PDF rapor üretimi (QuestPDF)
         services.AddSingleton<IPdfReportGenerator, QuestPdfReportGenerator>();
+
+        // Barkod → besin (OpenFoodFacts, anahtarsız)
+        services.AddHttpClient<IFoodLookupClient, OpenFoodFactsClient>(c =>
+        {
+            c.Timeout = TimeSpan.FromSeconds(15);
+            c.DefaultRequestHeaders.Add("User-Agent", "FitMetrics/1.0 (educational project)");
+        });
 
         return services;
     }

@@ -9,4 +9,5 @@ public interface INutritionService
     Task<NutritionLogDto> AddLogAsync(int userId, CreateNutritionLogRequest request, CancellationToken ct = default);
     Task DeleteLogAsync(int userId, int logId, CancellationToken ct = default);
     Task<DailyNutritionSummaryDto> GetDailySummaryAsync(int userId, DateTime date, CancellationToken ct = default);
+    Task<BarcodeLookupResult> LookupBarcodeAsync(string barcode, CancellationToken ct = default);
 }

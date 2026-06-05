@@ -20,6 +20,7 @@ public record UserDto(
     int Id,
     string FullName,
     string Email,
+    UserRole Role,
     int Age,
     Gender Gender,
     double HeightCm,

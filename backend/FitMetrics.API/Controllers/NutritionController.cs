@@ -32,4 +32,8 @@ public class NutritionController : ApiControllerBase
     [HttpGet("summary")]
     public async Task<ActionResult<DailyNutritionSummaryDto>> Summary([FromQuery] DateTime? date, CancellationToken ct)
         => Ok(await _nutritionService.GetDailySummaryAsync(UserId, date ?? DateTime.UtcNow.Date, ct));
+
+    [HttpGet("barcode/{code}")]
+    public async Task<ActionResult<BarcodeLookupResult>> Barcode(string code, CancellationToken ct)
+        => Ok(await _nutritionService.LookupBarcodeAsync(code, ct));
 }

@@ -9,6 +9,7 @@ import Workouts from './pages/Workouts';
 import Progress from './pages/Progress';
 import Insights from './pages/Insights';
 import AiCoach from './pages/AiCoach';
+import Dietitian from './pages/Dietitian';
 import Profile from './pages/Profile';
 
 export default function App() {
@@ -25,6 +26,7 @@ export default function App() {
           <Route path="/progress" element={<Progress />} />
           <Route path="/insights" element={<Insights />} />
           <Route path="/ai-coach" element={<AiCoach />} />
+          <Route path="/dietitian" element={<Dietitian />} />
           <Route path="/profile" element={<Profile />} />
         </Route>
       </Route>

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { nutritionApi } from '../api';
 import { getErrorMessage } from '../api/client';
 import { Button, Card, EmptyState, ErrorAlert, Field, Input, PageHeader, Select, Spinner } from '../components/ui';
+import BarcodeAdd from '../components/BarcodeAdd';
 import { mealLabels, mealOrder } from '../lib/labels';
 import type { DailyNutritionSummary, Food, MealType } from '../types';
 
@@ -71,6 +72,11 @@ export default function Nutrition() {
     }
   };
 
+  const handleFoodCreated = (food: Food) => {
+    setFoods((prev) => [food, ...prev.filter((f) => f.id !== food.id)]);
+    setFoodId(food.id);
+  };
+
   const caloriePct = summary && summary.calorieGoal > 0
     ? Math.min(100, Math.round((summary.totalCalories / summary.calorieGoal) * 100)) : 0;
 
@@ -105,6 +111,8 @@ export default function Nutrition() {
           <Button type="submit" disabled={adding || foodId === ''}>{adding ? 'Ekleniyor…' : '+ Ekle'}</Button>
         </form>
       </Card>
+
+      <BarcodeAdd onFoodCreated={handleFoodCreated} />
 
       {loading || !summary ? (
         <Spinner />
