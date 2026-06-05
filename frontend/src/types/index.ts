@@ -228,3 +228,10 @@ export interface ClientSummary {
   bmi: number;
   linkedAt: string;
 }
+
+export interface FatSecretFoodResult {
+  id: string;
+  name: string;
+  brand?: string | null;
+  description: string;
+}

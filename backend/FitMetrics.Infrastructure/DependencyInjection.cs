@@ -45,6 +45,10 @@ public static class DependencyInjection
             c.DefaultRequestHeaders.Add("User-Agent", "FitMetrics/1.0 (educational project)");
         });
 
+        // FatSecret besin arama (anahtarlar user-secrets / ortam değişkeniyle sağlanır)
+        services.Configure<FatSecretSettings>(configuration.GetSection(FatSecretSettings.SectionName));
+        services.AddHttpClient<IFatSecretClient, FatSecretClient>(c => c.Timeout = TimeSpan.FromSeconds(20));
+
         return services;
     }
 }

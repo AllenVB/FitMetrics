@@ -14,12 +14,14 @@ public class NutritionService : INutritionService
     private readonly IApplicationDbContext _db;
     private readonly IMapper _mapper;
     private readonly IFoodLookupClient _foodLookup;
+    private readonly IFatSecretClient _fatSecret;
 
-    public NutritionService(IApplicationDbContext db, IMapper mapper, IFoodLookupClient foodLookup)
+    public NutritionService(IApplicationDbContext db, IMapper mapper, IFoodLookupClient foodLookup, IFatSecretClient fatSecret)
     {
         _db = db;
         _mapper = mapper;
         _foodLookup = foodLookup;
+        _fatSecret = fatSecret;
     }
 
     public async Task<List<FoodDto>> GetFoodsAsync(string? search, CancellationToken ct = default)
@@ -127,6 +129,30 @@ public class NutritionService : INutritionService
         var result = await _foodLookup.LookupByBarcodeAsync(trimmed, ct)
                      ?? throw new NotFoundException($"'{trimmed}' barkodlu ürün bulunamadı.");
         return result;
+    }
+
+    public Task<List<FatSecretFoodResult>> SearchFoodsAsync(string query, CancellationToken ct = default)
+        => _fatSecret.SearchAsync(query.Trim(), ct);
+
+    public async Task<FoodDto> ImportFatSecretFoodAsync(string fatSecretFoodId, CancellationToken ct = default)
+    {
+        var imported = await _fatSecret.GetFoodAsync(fatSecretFoodId, ct)
+                       ?? throw new NotFoundException("FatSecret besini", fatSecretFoodId);
+
+        var food = new Food
+        {
+            Name = imported.Name.Trim(),
+            Brand = imported.Brand?.Trim(),
+            Category = "FatSecret",
+            CaloriesPer100g = imported.CaloriesPer100g,
+            ProteinPer100g = imported.ProteinPer100g,
+            CarbsPer100g = imported.CarbsPer100g,
+            FatPer100g = imported.FatPer100g
+        };
+
+        _db.Foods.Add(food);
+        await _db.SaveChangesAsync(ct);
+        return _mapper.Map<FoodDto>(food);
     }
 
     /// <summary>Bir öğün kaydını, besinin 100g değerlerini tüketilen gram miktarına ölçekleyerek DTO'ya çevirir.</summary>

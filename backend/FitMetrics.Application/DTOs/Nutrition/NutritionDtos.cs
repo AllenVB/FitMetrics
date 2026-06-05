@@ -37,6 +37,20 @@ public record BarcodeLookupResult(
     double CarbsPer100g,
     double FatPer100g);
 
+/// <summary>FatSecret besin arama sonucu öğesi (liste için).</summary>
+public record FatSecretFoodResult(string Id, string Name, string? Brand, string Description);
+
+/// <summary>Dış kaynaktan içe aktarılacak besinin 100g başına değerleri.</summary>
+public record FoodImport(
+    string Name,
+    string? Brand,
+    double CaloriesPer100g,
+    double ProteinPer100g,
+    double CarbsPer100g,
+    double FatPer100g);
+
+public record ImportFoodRequest(string FoodId);
+
 public record NutritionLogDto(
     int Id,
     int FoodId,

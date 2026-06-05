@@ -1,8 +1,8 @@
 import client from './client';
 import type {
   AuthResponse, BarcodeLookupResult, ClientSummary, CoachResponse, Dashboard, DailyNutritionSummary,
-  Exercise, Food, InsightsResponse, MealPhotoResponse, MealPlanResponse, MealType, NutritionLog,
-  RegisterRequest, UpdateProfileRequest, User, WeightEntry, WorkoutLog,
+  Exercise, FatSecretFoodResult, Food, InsightsResponse, MealPhotoResponse, MealPlanResponse, MealType,
+  NutritionLog, RegisterRequest, UpdateProfileRequest, User, WeightEntry, WorkoutLog,
 } from '../types';
 
 export interface CreateFoodRequest {
@@ -63,6 +63,10 @@ export const nutritionApi = {
     client.get<DailyNutritionSummary>('/nutrition/summary', { params: { date } }).then((r) => r.data),
   lookupBarcode: (code: string) =>
     client.get<BarcodeLookupResult>(`/nutrition/barcode/${encodeURIComponent(code)}`).then((r) => r.data),
+  search: (q: string) =>
+    client.get<FatSecretFoodResult[]>('/nutrition/search', { params: { q } }).then((r) => r.data),
+  importFood: (foodId: string) =>
+    client.post<Food>('/nutrition/import', { foodId }).then((r) => r.data),
 };
 
 export const workoutApi = {

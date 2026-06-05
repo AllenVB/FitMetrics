@@ -36,4 +36,12 @@ public class NutritionController : ApiControllerBase
     [HttpGet("barcode/{code}")]
     public async Task<ActionResult<BarcodeLookupResult>> Barcode(string code, CancellationToken ct)
         => Ok(await _nutritionService.LookupBarcodeAsync(code, ct));
+
+    [HttpGet("search")]
+    public async Task<ActionResult<List<FatSecretFoodResult>>> Search([FromQuery] string q, CancellationToken ct)
+        => Ok(await _nutritionService.SearchFoodsAsync(q, ct));
+
+    [HttpPost("import")]
+    public async Task<ActionResult<FoodDto>> Import(ImportFoodRequest request, CancellationToken ct)
+        => Ok(await _nutritionService.ImportFatSecretFoodAsync(request.FoodId, ct));
 }

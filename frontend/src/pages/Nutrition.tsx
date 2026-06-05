@@ -3,6 +3,7 @@ import { nutritionApi } from '../api';
 import { getErrorMessage } from '../api/client';
 import { Button, Card, EmptyState, ErrorAlert, Field, Input, PageHeader, Select, Spinner } from '../components/ui';
 import BarcodeAdd from '../components/BarcodeAdd';
+import FoodSearch from '../components/FoodSearch';
 import { mealLabels, mealOrder } from '../lib/labels';
 import type { DailyNutritionSummary, Food, MealType } from '../types';
 
@@ -94,7 +95,7 @@ export default function Nutrition() {
       <Card className="mb-6">
         <form onSubmit={onAdd} className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5 lg:items-end">
           <div className="lg:col-span-2">
-            <Field label="Besin">
+            <Field label="Kayıtlı besinlerim" hint={foods.length === 0 ? 'Yukarıdan ara veya barkot ile ekle' : undefined}>
               <Select value={foodId} onChange={(e) => setFoodId(Number(e.target.value))}>
                 {foods.map((f) => (
                   <option key={f.id} value={f.id}>{f.name} ({f.caloriesPer100g} kcal/100g)</option>
@@ -111,6 +112,8 @@ export default function Nutrition() {
           <Button type="submit" disabled={adding || foodId === ''}>{adding ? 'Ekleniyor…' : '+ Ekle'}</Button>
         </form>
       </Card>
+
+      <FoodSearch onFoodImported={handleFoodCreated} />
 
       <BarcodeAdd onFoodCreated={handleFoodCreated} />
 

@@ -12,7 +12,7 @@ Kullanıcıların beslenme, egzersiz ve vücut ölçülerini tek platformda topl
 
 - **Kimlik doğrulama**: JWT tabanlı kayıt / giriş, BCrypt ile parola hash'leme
 - **Akıllı hedefler**: Kayıtta Mifflin-St Jeor (BMR) + aktivite + hedefe göre otomatik günlük kalori & protein hedefi
-- **Beslenme takibi**: 30 besinlik hazır katalog, gram bazlı kalori/makro hesabı, öğün gruplama (kahvaltı/öğle/akşam/ara)
+- **Beslenme takibi**: **FatSecret** ile gerçek besin arama + barkod, gram bazlı kalori/makro hesabı, öğün gruplama (kahvaltı/öğle/akşam/ara)
 - **Antrenman takibi**: 24 egzersizlik katalog (kas grubu + kategori), set/tekrar/ağırlık veya süre girişi, otomatik kalori yakım hesabı
 - **İlerleme takibi**: Kilo ve vücut yağı geçmişi, Chart.js grafikleri
 - **AI Insights motoru**: Son 14–21 günü analiz ederek üretilen öneriler
@@ -55,6 +55,7 @@ Application katmanı, EF Core'a `IApplicationDbContext` soyutlaması üzerinden 
 | API Dokümantasyonu | Swagger / OpenAPI (Swashbuckle) |
 | AI / Vision | Claude API (Anthropic Messages API, raw HttpClient) |
 | PDF Rapor | QuestPDF (Community) |
+| Besin arama | FatSecret Platform API (OAuth2) |
 | Barkod | OpenFoodFacts API + @zxing/browser (kamera tarama) |
 
 > **Not:** Spec'te AutoMapper belirtilmişti; ancak AutoMapper v15+ ticari lisansa geçti ve ücretsiz sürümlerde yüksek önem dereceli bir güvenlik açığı (GHSA-rvv3-g6hj-g44x) bulunuyor. Bu nedenle MIT lisanslı, daha hızlı ve birebir muadili olan **Mapster** tercih edildi.
@@ -80,7 +81,7 @@ dotnet run
 
 - API: **http://localhost:5072**
 - Swagger UI: **http://localhost:5072/swagger**
-- Veritabanı ve seed verisi (besinler + egzersizler) uygulama açılışında otomatik oluşturulur (`Database.Migrate()`).
+- Veritabanı ve egzersiz seed verisi uygulama açılışında otomatik oluşturulur (`Database.Migrate()`). Besinler FatSecret aramasıyla içe aktarılır (statik besin seed'i yoktur).
 
 ### 2) Frontend
 
@@ -107,6 +108,18 @@ setx ANTHROPIC_API_KEY "sk-ant-..."   # Windows; yeni terminal aç
 veya `backend/FitMetrics.API/appsettings.json` → `Anthropic:ApiKey`. Varsayılan model `claude-opus-4-8`; maliyet için `Anthropic:Model` değerini `claude-sonnet-4-6` yapabilirsin.
 
 **PDF rapor** (İlerleme sayfası → "📄 PDF Rapor") anahtar gerektirmez; QuestPDF ile sunucuda üretilir.
+
+### 4) FatSecret (besin arama)
+
+Beslenme sayfasındaki **🔎 Besin Ara** özelliği FatSecret Platform API kullanır. Kimlik bilgileri **repo'ya yazılmaz**, `dotnet user-secrets` ile saklanır:
+
+```bash
+cd backend/FitMetrics.API
+dotnet user-secrets set "FatSecret:ClientId" "<client-id>"
+dotnet user-secrets set "FatSecret:ClientSecret" "<client-secret>"
+```
+
+> ⚠️ **IP whitelist:** FatSecret, API çağrılarını yalnızca panelde tanımlı IP'lerden kabul eder. FatSecret hesabında **Manage API Keys → IP Restrictions** altında sunucunun genel IP'sini eklemen gerekir; aksi halde arama `Invalid IP address` hatası döner.
 
 ---
 
