@@ -180,3 +180,26 @@ export interface InsightsResponse {
   daysAnalyzed: number;
   insights: Insight[];
 }
+
+// ---- AI (Claude) ----
+
+export interface MealPlanFood { name: string; amount: string; calories: number; protein: number; }
+export interface MealPlanMeal { mealType: string; calories: number; foods: MealPlanFood[]; }
+export interface MealPlanResponse {
+  summary: string;
+  totalCalories: number;
+  totalProtein: number;
+  meals: MealPlanMeal[];
+}
+
+export interface CoachResponse { message: string; focusAreas: string[]; }
+
+export interface DetectedFood { name: string; portion: string; calories: number; protein: number; }
+export interface MealPhotoResponse {
+  description: string;
+  foods: DetectedFood[];
+  estimatedCalories: number;
+  estimatedProtein: number;
+  estimatedCarbs: number;
+  estimatedFat: number;
+}

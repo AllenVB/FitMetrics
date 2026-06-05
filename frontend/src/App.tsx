@@ -8,6 +8,7 @@ import Nutrition from './pages/Nutrition';
 import Workouts from './pages/Workouts';
 import Progress from './pages/Progress';
 import Insights from './pages/Insights';
+import AiCoach from './pages/AiCoach';
 import Profile from './pages/Profile';
 
 export default function App() {
@@ -23,6 +24,7 @@ export default function App() {
           <Route path="/workouts" element={<Workouts />} />
           <Route path="/progress" element={<Progress />} />
           <Route path="/insights" element={<Insights />} />
+          <Route path="/ai-coach" element={<AiCoach />} />
           <Route path="/profile" element={<Profile />} />
         </Route>
       </Route>

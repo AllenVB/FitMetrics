@@ -42,6 +42,8 @@ public class ExceptionHandlingMiddleware
             NotFoundException nf => ((int)HttpStatusCode.NotFound, nf.Message, Array.Empty<string>()),
             ConflictException cf => ((int)HttpStatusCode.Conflict, cf.Message, Array.Empty<string>()),
             UnauthorizedException ua => ((int)HttpStatusCode.Unauthorized, ua.Message, Array.Empty<string>()),
+            AiNotConfiguredException ae => ((int)HttpStatusCode.ServiceUnavailable, ae.Message, Array.Empty<string>()),
+            ExternalServiceException ee => ((int)HttpStatusCode.BadGateway, ee.Message, Array.Empty<string>()),
             _ => ((int)HttpStatusCode.InternalServerError, "Beklenmeyen bir hata oluştu.", Array.Empty<string>())
         };
 

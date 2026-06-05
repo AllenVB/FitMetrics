@@ -1,7 +1,8 @@
 import client from './client';
 import type {
-  AuthResponse, Dashboard, DailyNutritionSummary, Exercise, Food, InsightsResponse,
-  MealType, NutritionLog, RegisterRequest, UpdateProfileRequest, User, WeightEntry, WorkoutLog,
+  AuthResponse, CoachResponse, Dashboard, DailyNutritionSummary, Exercise, Food, InsightsResponse,
+  MealPhotoResponse, MealPlanResponse, MealType, NutritionLog, RegisterRequest, UpdateProfileRequest,
+  User, WeightEntry, WorkoutLog,
 } from '../types';
 
 export interface CreateFoodRequest {
@@ -85,4 +86,25 @@ export const dashboardApi = {
 
 export const insightsApi = {
   get: () => client.get<InsightsResponse>('/insights').then((r) => r.data),
+};
+
+export interface GenerateMealPlanRequest {
+  prompt: string;
+  targetCalories?: number | null;
+}
+
+export const aiApi = {
+  status: () => client.get<{ enabled: boolean }>('/ai/status').then((r) => r.data),
+  mealPlan: (payload: GenerateMealPlanRequest) =>
+    client.post<MealPlanResponse>('/ai/meal-plan', payload).then((r) => r.data),
+  coach: () => client.get<CoachResponse>('/ai/coach').then((r) => r.data),
+  analyzeMealPhoto: (imageBase64: string, mediaType: string) =>
+    client.post<MealPhotoResponse>('/ai/analyze-meal-photo', { imageBase64, mediaType }).then((r) => r.data),
+};
+
+export const reportsApi = {
+  downloadMonthly: async (year?: number, month?: number): Promise<Blob> => {
+    const res = await client.get('/reports/monthly', { params: { year, month }, responseType: 'blob' });
+    return res.data as Blob;
+  },
 };

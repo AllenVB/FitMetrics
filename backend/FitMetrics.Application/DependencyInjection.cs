@@ -31,6 +31,8 @@ public static class DependencyInjection
         services.AddScoped<IWeightService, WeightService>();
         services.AddScoped<IDashboardService, DashboardService>();
         services.AddScoped<IInsightService, InsightService>();
+        services.AddScoped<IAiService, AiService>();
+        services.AddScoped<IReportService, ReportService>();
 
         return services;
     }

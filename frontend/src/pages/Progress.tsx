@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { Line } from 'react-chartjs-2';
-import { weightApi } from '../api';
+import { reportsApi, weightApi } from '../api';
 import { getErrorMessage } from '../api/client';
 import { Button, Card, EmptyState, ErrorAlert, Field, Input, PageHeader, Spinner, StatCard } from '../components/ui';
 import { formatDate } from '../lib/labels';
@@ -15,6 +15,7 @@ export default function Progress() {
   const [bodyFat, setBodyFat] = useState('');
   const [date, setDate] = useState('');
   const [adding, setAdding] = useState(false);
+  const [downloading, setDownloading] = useState(false);
 
   const load = useCallback(() => {
     setLoading(true);
@@ -55,6 +56,26 @@ export default function Progress() {
     }
   };
 
+  const downloadReport = async () => {
+    setDownloading(true);
+    setError('');
+    try {
+      const blob = await reportsApi.downloadMonthly();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'fitmetrics-rapor.pdf';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      setError(getErrorMessage(err));
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   const first = entries[0];
   const last = entries[entries.length - 1];
   const change = first && last ? +(last.weightKg - first.weightKg).toFixed(1) : 0;
@@ -92,7 +113,15 @@ export default function Progress() {
 
   return (
     <div>
-      <PageHeader title="📈 İlerleme" subtitle="Kilo ve vücut yağı değişimini takip et" />
+      <PageHeader
+        title="📈 İlerleme"
+        subtitle="Kilo ve vücut yağı değişimini takip et"
+        action={
+          <Button variant="secondary" onClick={downloadReport} disabled={downloading}>
+            {downloading ? 'Hazırlanıyor…' : '📄 PDF Rapor'}
+          </Button>
+        }
+      />
 
       <div className="mb-4"><ErrorAlert message={error} /></div>
 

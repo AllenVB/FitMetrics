@@ -1,4 +1,7 @@
 using FitMetrics.Application.Common.Interfaces;
+using FitMetrics.Application.Common.Settings;
+using FitMetrics.Infrastructure.Ai;
+using FitMetrics.Infrastructure.Reports;
 using FitMetrics.Infrastructure.Persistence;
 using FitMetrics.Infrastructure.Security;
 using Microsoft.EntityFrameworkCore;
@@ -21,6 +24,18 @@ public static class DependencyInjection
 
         services.AddScoped<ITokenService, JwtTokenService>();
         services.AddSingleton<IPasswordHasher, BCryptPasswordHasher>();
+
+        // Claude API (Anthropic) — appsettings "Anthropic" bölümü, ANTHROPIC_API_KEY env var fallback
+        services.Configure<AnthropicSettings>(configuration.GetSection(AnthropicSettings.SectionName));
+        services.PostConfigure<AnthropicSettings>(s =>
+        {
+            if (string.IsNullOrWhiteSpace(s.ApiKey))
+                s.ApiKey = Environment.GetEnvironmentVariable("ANTHROPIC_API_KEY") ?? string.Empty;
+        });
+        services.AddHttpClient<IClaudeClient, ClaudeClient>(c => c.Timeout = TimeSpan.FromSeconds(120));
+
+        // PDF rapor üretimi (QuestPDF)
+        services.AddSingleton<IPdfReportGenerator, QuestPdfReportGenerator>();
 
         return services;
     }

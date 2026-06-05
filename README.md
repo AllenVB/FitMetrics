@@ -53,6 +53,8 @@ Application katmanı, EF Core'a `IApplicationDbContext` soyutlaması üzerinden 
 | Frontend | React 19, TypeScript, Vite, Tailwind CSS v4 |
 | Grafik / HTTP | Chart.js + react-chartjs-2, Axios, React Router |
 | API Dokümantasyonu | Swagger / OpenAPI (Swashbuckle) |
+| AI / Vision | Claude API (Anthropic Messages API, raw HttpClient) |
+| PDF Rapor | QuestPDF (Community) |
 
 > **Not:** Spec'te AutoMapper belirtilmişti; ancak AutoMapper v15+ ticari lisansa geçti ve ücretsiz sürümlerde yüksek önem dereceli bir güvenlik açığı (GHSA-rvv3-g6hj-g44x) bulunuyor. Bu nedenle MIT lisanslı, daha hızlı ve birebir muadili olan **Mapster** tercih edildi.
 
@@ -92,6 +94,19 @@ npm run dev
 
 İlk kullanım: **Kayıt ol** → profil/hedef bilgilerini gir → beslenme & antrenman ekle → **Dashboard** ve **AI Insights** sayfalarında analizleri gör.
 
+### 3) AI özellikleri (opsiyonel)
+
+AI Koç sayfası (akıllı öğün planı, doğal dil koçluk, fotoğraftan yemek tanıma) **Claude API** kullanır. Anahtar olmadan uygulamanın geri kalanı tam çalışır; AI özellikleri zarifçe devre dışı kalır. Etkinleştirmek için bir Anthropic API anahtarı tanımla:
+
+```bash
+# Ortam değişkeni (önerilen)
+setx ANTHROPIC_API_KEY "sk-ant-..."   # Windows; yeni terminal aç
+```
+
+veya `backend/FitMetrics.API/appsettings.json` → `Anthropic:ApiKey`. Varsayılan model `claude-opus-4-8`; maliyet için `Anthropic:Model` değerini `claude-sonnet-4-6` yapabilirsin.
+
+**PDF rapor** (İlerleme sayfası → "📄 PDF Rapor") anahtar gerektirmez; QuestPDF ile sunucuda üretilir.
+
 ---
 
 ## 🔌 Başlıca API Uç Noktaları
@@ -109,7 +124,12 @@ npm run dev
 | POST/GET/DELETE | `/api/workout/logs` | Antrenman ekle / listele / sil |
 | POST/GET/DELETE | `/api/weight` | Kilo kaydı ekle / geçmiş / sil |
 | GET | `/api/dashboard` | Dashboard verisi |
-| GET | `/api/insights` | AI analizleri |
+| GET | `/api/insights` | Kural tabanlı AI analizleri |
+| GET | `/api/ai/status` | AI etkin mi (API anahtarı var mı) |
+| POST | `/api/ai/meal-plan` | Claude ile akıllı öğün/program oluşturma |
+| GET | `/api/ai/coach` | Claude ile doğal dil koçluk |
+| POST | `/api/ai/analyze-meal-photo` | Claude vision ile fotoğraftan kalori/makro tahmini |
+| GET | `/api/reports/monthly` | PDF aylık ilerleme raporu |
 
 Korumalı tüm uç noktalar `Authorization: Bearer <token>` başlığı bekler.
 
@@ -130,10 +150,14 @@ Korumalı tüm uç noktalar `Authorization: Bearer <token>` başlığı bekler.
 
 ## 🗺️ Yol Haritası (Premium)
 
+**Tamamlandı (Faz 2):**
+- [x] LLM destekli akıllı öğün/program oluşturucu (Claude)
+- [x] Doğal dil kişisel koçluk (Claude)
+- [x] Fotoğraftan yemek tanıma (Claude vision)
+- [x] PDF aylık ilerleme raporu (QuestPDF)
+
+**Sırada:**
 - [ ] Barkod ile ürün ekleme
-- [ ] Fotoğraftan yemek tanıma
-- [ ] LLM destekli akıllı öğün/program oluşturucu
-- [ ] PDF aylık ilerleme raporu
 - [ ] Diyetisyen/antrenör paneli
 
 ---

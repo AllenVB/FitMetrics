@@ -20,3 +20,16 @@ public class UnauthorizedException : Exception
 {
     public UnauthorizedException(string message) : base(message) { }
 }
+
+/// <summary>Bağımlı bir servis (örn. Claude API) yapılandırılmadığında (HTTP 503).</summary>
+public class AiNotConfiguredException : Exception
+{
+    public AiNotConfiguredException()
+        : base("Yapay zekâ özelliği yapılandırılmamış. Sunucuda ANTHROPIC_API_KEY tanımlanmalıdır.") { }
+}
+
+/// <summary>Dış servis çağrısı başarısız olduğunda (HTTP 502).</summary>
+public class ExternalServiceException : Exception
+{
+    public ExternalServiceException(string message) : base(message) { }
+}
