@@ -25,4 +25,8 @@ public class AiController : ApiControllerBase
     [HttpPost("analyze-meal-photo")]
     public async Task<ActionResult<MealPhotoResponse>> AnalyzePhoto(AnalyzeMealPhotoRequest request, CancellationToken ct)
         => Ok(await _ai.AnalyzeMealPhotoAsync(request, ct));
+
+    [HttpPost("chat")]
+    public async Task<ActionResult<ChatResponse>> Chat(ChatRequest request, CancellationToken ct)
+        => Ok(await _ai.ChatAsync(UserId, request, ct));
 }

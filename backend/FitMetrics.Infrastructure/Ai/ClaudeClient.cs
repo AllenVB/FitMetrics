@@ -40,7 +40,16 @@ public class ClaudeClient : IClaudeClient
         return SendAsync(BuildBody(systemPrompt, content, jsonSchema, options), ct);
     }
 
+    public Task<string> ChatAsync(string systemPrompt, IReadOnlyList<ChatTurn> messages, ClaudeOptions options, CancellationToken ct = default)
+    {
+        var msgs = messages.Select(m => (object)new { role = m.Role, content = m.Content }).ToArray();
+        return SendAsync(BuildBodyWithMessages(systemPrompt, msgs, schema: null, options), ct);
+    }
+
     private Dictionary<string, object?> BuildBody(string system, object userContent, object? schema, ClaudeOptions options)
+        => BuildBodyWithMessages(system, [new { role = "user", content = userContent }], schema, options);
+
+    private Dictionary<string, object?> BuildBodyWithMessages(string system, object[] messages, object? schema, ClaudeOptions options)
     {
         var body = new Dictionary<string, object?>
         {
@@ -50,10 +59,7 @@ public class ClaudeClient : IClaudeClient
             {
                 new { type = "text", text = system, cache_control = new { type = "ephemeral" } }
             },
-            ["messages"] = new object[]
-            {
-                new { role = "user", content = userContent }
-            }
+            ["messages"] = messages
         };
 
         if (options.Thinking)

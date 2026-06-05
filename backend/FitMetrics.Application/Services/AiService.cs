@@ -4,7 +4,10 @@ using FitMetrics.Application.Common.Exceptions;
 using FitMetrics.Application.Common.Helpers;
 using FitMetrics.Application.Common.Interfaces;
 using FitMetrics.Application.DTOs.Ai;
+using FitMetrics.Application.DTOs.Dashboard;
+using FitMetrics.Application.DTOs.Insights;
 using FitMetrics.Application.Services.Interfaces;
+using FitMetrics.Domain.Entities;
 using FitMetrics.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 
@@ -17,12 +20,14 @@ public class AiService : IAiService
     private readonly IClaudeClient _claude;
     private readonly IApplicationDbContext _db;
     private readonly IInsightService _insightService;
+    private readonly IDashboardService _dashboardService;
 
-    public AiService(IClaudeClient claude, IApplicationDbContext db, IInsightService insightService)
+    public AiService(IClaudeClient claude, IApplicationDbContext db, IInsightService insightService, IDashboardService dashboardService)
     {
         _claude = claude;
         _db = db;
         _insightService = insightService;
+        _dashboardService = dashboardService;
     }
 
     public bool IsEnabled => _claude.IsConfigured;
@@ -112,6 +117,63 @@ public class AiService : IAiService
 
         return Deserialize<MealPhotoResponse>(json);
     }
+
+    // ---- Sohbet asistanı ----
+
+    public async Task<ChatResponse> ChatAsync(int userId, ChatRequest request, CancellationToken ct = default)
+    {
+        EnsureEnabled();
+
+        var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == userId, ct)
+                   ?? throw new NotFoundException("Kullanıcı", userId);
+
+        var dashboard = await _dashboardService.GetDashboardAsync(userId, ct);
+        var insights = await _insightService.GenerateAsync(userId, ct);
+
+        var system = BuildChatSystemPrompt(user, dashboard, insights);
+
+        // Son 20 mesaj; sohbet kullanıcı mesajıyla başlamalı
+        var turns = request.Messages
+            .TakeLast(20)
+            .Select(m => new ChatTurn(m.Role, m.Content))
+            .ToList();
+        while (turns.Count > 0 && turns[0].Role != "user")
+            turns.RemoveAt(0);
+        if (turns.Count == 0)
+            throw new ExternalServiceException("Geçerli bir kullanıcı mesajı bulunamadı.");
+
+        var reply = await _claude.ChatAsync(system, turns,
+            new ClaudeOptions(MaxTokens: 1200, Thinking: false, Effort: "medium"), ct);
+
+        return new ChatResponse(reply.Trim());
+    }
+
+    private static string BuildChatSystemPrompt(User user, DashboardDto d, InsightsResponse insights)
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine("Sen FitMetrics uygulamasının kişisel sağlık ve fitness asistanısın.");
+        sb.AppendLine("Kullanıcının aşağıdaki GERÇEK verisine dayanarak Türkçe; kısa, somut ve motive edici yanıtlar ver.");
+        sb.AppendLine("Tıbbi teşhis/tedavi verme; genel sağlık-fitness rehberliği sun. Veride olmayanı uydurma; eksikse kullanıcıyı veri girmeye yönlendir.");
+        sb.AppendLine();
+        sb.AppendLine("[KULLANICI VERİSİ]");
+        sb.AppendLine($"Ad: {user.FullName} · {user.Age} yaş · {GenderText(user.Gender)} · {user.HeightCm} cm · {user.CurrentWeightKg} kg · BMI {d.Bmi}");
+        sb.AppendLine($"Hedef: {GoalText(user.GoalType)}{(user.TargetWeightKg.HasValue ? $" · hedef kilo {user.TargetWeightKg} kg" : "")}");
+        sb.AppendLine($"Günlük hedef: {d.Today.CalorieGoal} kcal · {d.Today.ProteinGoal} g protein · {d.WaterGoalMl} ml su");
+        sb.AppendLine($"Bugün alınan: {Math.Round(d.Today.TotalCalories)} kcal · {Math.Round(d.Today.TotalProtein)} g protein · {Math.Round(d.Today.TotalCarbs)} g karb · {Math.Round(d.Today.TotalFat)} g yağ");
+        sb.AppendLine($"Bu hafta: {d.WorkoutsThisWeek} antrenman · {Math.Round(d.CaloriesBurnedThisWeek)} kcal yakıldı");
+        sb.AppendLine();
+        sb.AppendLine("[GÜNCEL ANALİZLER]");
+        foreach (var i in insights.Insights)
+            sb.AppendLine($"- {i.Title}: {i.Message}");
+        return sb.ToString();
+    }
+
+    private static string GenderText(Gender gender) => gender switch
+    {
+        Gender.Male => "erkek",
+        Gender.Female => "kadın",
+        _ => "diğer"
+    };
 
     // ---- Yardımcılar ----
 

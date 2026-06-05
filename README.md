@@ -143,6 +143,7 @@ dotnet user-secrets set "FatSecret:ClientSecret" "<client-secret>"
 | POST | `/api/ai/meal-plan` | Claude ile akıllı öğün/program oluşturma |
 | GET | `/api/ai/coach` | Claude ile doğal dil koçluk |
 | POST | `/api/ai/analyze-meal-photo` | Claude vision ile fotoğraftan kalori/makro tahmini |
+| POST | `/api/ai/chat` | Verilere dayalı çok-turlu sohbet asistanı (Claude) |
 | GET | `/api/reports/monthly` | PDF aylık ilerleme raporu |
 | GET | `/api/nutrition/barcode/{code}` | Barkoddan besin (OpenFoodFacts) |
 | POST | `/api/dietitian/enroll` | Diyetisyen moduna geç |
@@ -179,6 +180,9 @@ Korumalı tüm uç noktalar `Authorization: Bearer <token>` başlığı bekler.
 **Tamamlandı (Faz 3):**
 - [x] Barkod ile ürün ekleme (OpenFoodFacts + kamera tarama)
 - [x] Diyetisyen/antrenör paneli (rol tabanlı, danışan takibi + yetkilendirme)
+
+**Tamamlandı (Faz 5):**
+- [x] AI Asistan: verilere dayalı çok-turlu sohbet botu (Claude, bağlam enjeksiyonu)
 
 **Gelecek fikirleri:**
 - [ ] Push bildirimleri, çoklu dil, mobil uygulama

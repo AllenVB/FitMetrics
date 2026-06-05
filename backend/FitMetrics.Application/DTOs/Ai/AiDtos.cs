@@ -31,3 +31,11 @@ public record MealPhotoResponse(
     int EstimatedProtein,
     int EstimatedCarbs,
     int EstimatedFat);
+
+// ---- Sohbet asistanı ----
+
+public record ChatMessageDto(string Role, string Content);
+
+public record ChatRequest(List<ChatMessageDto> Messages);
+
+public record ChatResponse(string Reply);

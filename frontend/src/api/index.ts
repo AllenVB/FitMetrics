@@ -1,8 +1,8 @@
 import client from './client';
 import type {
-  AuthResponse, BarcodeLookupResult, ClientSummary, CoachResponse, Dashboard, DailyNutritionSummary,
-  Exercise, FatSecretFoodResult, Food, InsightsResponse, MealPhotoResponse, MealPlanResponse, MealType,
-  NutritionLog, RegisterRequest, UpdateProfileRequest, User, WeightEntry, WorkoutLog,
+  AuthResponse, BarcodeLookupResult, ChatMessage, ChatResponse, ClientSummary, CoachResponse, Dashboard,
+  DailyNutritionSummary, Exercise, FatSecretFoodResult, Food, InsightsResponse, MealPhotoResponse,
+  MealPlanResponse, MealType, NutritionLog, RegisterRequest, UpdateProfileRequest, User, WeightEntry, WorkoutLog,
 } from '../types';
 
 export interface CreateFoodRequest {
@@ -106,6 +106,8 @@ export const aiApi = {
   coach: () => client.get<CoachResponse>('/ai/coach').then((r) => r.data),
   analyzeMealPhoto: (imageBase64: string, mediaType: string) =>
     client.post<MealPhotoResponse>('/ai/analyze-meal-photo', { imageBase64, mediaType }).then((r) => r.data),
+  chat: (messages: ChatMessage[]) =>
+    client.post<ChatResponse>('/ai/chat', { messages }).then((r) => r.data),
 };
 
 export const reportsApi = {

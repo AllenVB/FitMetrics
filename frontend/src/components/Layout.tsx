@@ -8,6 +8,7 @@ const navItems = [
   { to: '/progress', label: 'İlerleme', icon: '📈' },
   { to: '/insights', label: 'AI Insights', icon: '🧠' },
   { to: '/ai-coach', label: 'AI Koç', icon: '🤖' },
+  { to: '/ai-assistant', label: 'AI Asistan', icon: '💬' },
   { to: '/dietitian', label: 'Diyetisyen', icon: '🧑‍⚕️' },
   { to: '/profile', label: 'Profil', icon: '⚙️' },
 ];

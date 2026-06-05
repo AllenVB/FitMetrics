@@ -30,3 +30,16 @@ public class AnalyzeMealPhotoRequestValidator : AbstractValidator<AnalyzeMealPho
             .WithMessage("Desteklenen formatlar: JPEG, PNG, WebP, GIF.");
     }
 }
+
+public class ChatRequestValidator : AbstractValidator<ChatRequest>
+{
+    public ChatRequestValidator()
+    {
+        RuleFor(x => x.Messages).NotEmpty().WithMessage("En az bir mesaj gereklidir.");
+        RuleForEach(x => x.Messages).ChildRules(m =>
+        {
+            m.RuleFor(x => x.Content).NotEmpty().MaximumLength(2000);
+            m.RuleFor(x => x.Role).Must(r => r is "user" or "assistant").WithMessage("Rol 'user' veya 'assistant' olmalıdır.");
+        });
+    }
+}

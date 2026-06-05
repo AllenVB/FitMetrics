@@ -235,3 +235,12 @@ export interface FatSecretFoodResult {
   brand?: string | null;
   description: string;
 }
+
+export interface ChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+export interface ChatResponse {
+  reply: string;
+}
