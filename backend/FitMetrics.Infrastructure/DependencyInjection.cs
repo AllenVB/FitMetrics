@@ -26,14 +26,20 @@ public static class DependencyInjection
         services.AddScoped<ITokenService, JwtTokenService>();
         services.AddSingleton<IPasswordHasher, BCryptPasswordHasher>();
 
-        // Claude API (Anthropic) — appsettings "Anthropic" bölümü, ANTHROPIC_API_KEY env var fallback
+        // AI sağlayıcısı: "Anthropic" (Claude, ücretli) veya "Ollama" (yerel, ücretsiz)
         services.Configure<AnthropicSettings>(configuration.GetSection(AnthropicSettings.SectionName));
         services.PostConfigure<AnthropicSettings>(s =>
         {
             if (string.IsNullOrWhiteSpace(s.ApiKey))
                 s.ApiKey = Environment.GetEnvironmentVariable("ANTHROPIC_API_KEY") ?? string.Empty;
         });
-        services.AddHttpClient<IClaudeClient, ClaudeClient>(c => c.Timeout = TimeSpan.FromSeconds(120));
+        services.Configure<OllamaSettings>(configuration.GetSection(OllamaSettings.SectionName));
+
+        var aiProvider = configuration["AiProvider"] ?? "Anthropic";
+        if (aiProvider.Equals("Ollama", StringComparison.OrdinalIgnoreCase))
+            services.AddHttpClient<IClaudeClient, OllamaClient>(c => c.Timeout = TimeSpan.FromSeconds(300));
+        else
+            services.AddHttpClient<IClaudeClient, ClaudeClient>(c => c.Timeout = TimeSpan.FromSeconds(120));
 
         // PDF rapor üretimi (QuestPDF)
         services.AddSingleton<IPdfReportGenerator, QuestPdfReportGenerator>();
