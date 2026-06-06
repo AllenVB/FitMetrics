@@ -244,3 +244,12 @@ export interface ChatMessage {
 export interface ChatResponse {
   reply: string;
 }
+
+// ---- Bilgi Tabanı (AI grounding) ----
+
+export interface KnowledgeEntry {
+  id: number;
+  question: string;
+  answer: string;
+  createdAt: string;
+}

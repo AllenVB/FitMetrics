@@ -9,6 +9,7 @@ const navItems = [
   { to: '/insights', label: 'AI Insights', icon: '🧠' },
   { to: '/ai-coach', label: 'AI Koç', icon: '🤖' },
   { to: '/ai-assistant', label: 'AI Asistan', icon: '💬' },
+  { to: '/knowledge', label: 'Bilgi Tabanı', icon: '📚' },
   { to: '/dietitian', label: 'Diyetisyen', icon: '🧑‍⚕️' },
   { to: '/profile', label: 'Profil', icon: '⚙️' },
 ];

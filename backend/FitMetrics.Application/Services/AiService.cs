@@ -130,8 +130,9 @@ public class AiService : IAiService
 
         var dashboard = await _dashboardService.GetDashboardAsync(userId, ct);
         var insights = await _insightService.GenerateAsync(userId, ct);
+        var knowledge = await GetRelevantKnowledgeAsync(LastUserMessage(request), ct);
 
-        var system = BuildChatSystemPrompt(user, dashboard, insights);
+        var system = BuildChatSystemPrompt(user, dashboard, insights, knowledge);
 
         // Son 20 mesaj; sohbet kullanıcı mesajıyla başlamalı
         var turns = request.Messages
@@ -159,7 +160,8 @@ public class AiService : IAiService
 
         var dashboard = await _dashboardService.GetDashboardAsync(userId, ct);
         var insights = await _insightService.GenerateAsync(userId, ct);
-        var system = BuildChatSystemPrompt(user, dashboard, insights);
+        var knowledge = await GetRelevantKnowledgeAsync(LastUserMessage(request), ct);
+        var system = BuildChatSystemPrompt(user, dashboard, insights, knowledge);
 
         var turns = request.Messages
             .TakeLast(20)
@@ -175,12 +177,14 @@ public class AiService : IAiService
             yield return chunk;
     }
 
-    private static string BuildChatSystemPrompt(User user, DashboardDto d, InsightsResponse insights)
+    private static string BuildChatSystemPrompt(User user, DashboardDto d, InsightsResponse insights, IReadOnlyList<KnowledgeEntry> knowledge)
     {
         var sb = new StringBuilder();
         sb.AppendLine("Sen FitMetrics uygulamasının kişisel sağlık ve fitness asistanısın.");
         sb.AppendLine("Kullanıcının aşağıdaki GERÇEK verisine dayanarak Türkçe; kısa, somut ve motive edici yanıtlar ver.");
         sb.AppendLine("Tıbbi teşhis/tedavi verme; genel sağlık-fitness rehberliği sun. Veride olmayanı uydurma; eksikse kullanıcıyı veri girmeye yönlendir.");
+        if (knowledge.Count > 0)
+            sb.AppendLine("ÖNEMLİ: Aşağıdaki [ONAYLI BİLGİ TABANI] soruyla ilgili bir cevap içeriyorsa yanıtını MUTLAKA o içeriğe dayandır (kendi cümlelerinle, doğal biçimde aktar). Çelişen genel bilgini kullanma.");
         sb.AppendLine();
         sb.AppendLine("[KULLANICI VERİSİ]");
         sb.AppendLine($"Ad: {user.FullName} · {user.Age} yaş · {GenderText(user.Gender)} · {user.HeightCm} cm · {user.CurrentWeightKg} kg · BMI {d.Bmi}");
@@ -192,8 +196,44 @@ public class AiService : IAiService
         sb.AppendLine("[GÜNCEL ANALİZLER]");
         foreach (var i in insights.Insights)
             sb.AppendLine($"- {i.Title}: {i.Message}");
+
+        if (knowledge.Count > 0)
+        {
+            sb.AppendLine();
+            sb.AppendLine("[ONAYLI BİLGİ TABANI]");
+            foreach (var k in knowledge)
+                sb.AppendLine($"- Soru: {k.Question} | Cevap: {k.Answer}");
+        }
+
         return sb.ToString();
     }
+
+    private static string LastUserMessage(ChatRequest request)
+        => request.Messages.LastOrDefault(m => m.Role == "user")?.Content ?? string.Empty;
+
+    /// <summary>Kullanıcı sorusuyla en alakalı bilgi tabanı kayıtlarını seçer (basit anahtar kelime skoru).</summary>
+    private async Task<List<KnowledgeEntry>> GetRelevantKnowledgeAsync(string query, CancellationToken ct)
+    {
+        var all = await _db.KnowledgeEntries.AsNoTracking().ToListAsync(ct);
+        if (all.Count == 0) return [];
+
+        var queryTokens = Tokenize(query);
+        if (queryTokens.Count == 0) return all.Take(5).ToList();
+
+        return all
+            .Select(e => (entry: e, score: queryTokens.Count(t => (e.Question + " " + e.Answer).ToLowerInvariant().Contains(t))))
+            .Where(x => x.score > 0)
+            .OrderByDescending(x => x.score)
+            .Take(5)
+            .Select(x => x.entry)
+            .ToList();
+    }
+
+    private static HashSet<string> Tokenize(string text) =>
+        text.ToLowerInvariant()
+            .Split([' ', '\t', '\n', '\r', '.', ',', '!', '?', ';', ':', '"', '\'', '(', ')', '-', '/'], StringSplitOptions.RemoveEmptyEntries)
+            .Where(w => w.Length > 2)
+            .ToHashSet();
 
     private static string GenderText(Gender gender) => gender switch
     {

@@ -1,7 +1,7 @@
 import client from './client';
 import type {
   AuthResponse, BarcodeLookupResult, ChatMessage, ChatResponse, ClientSummary, CoachResponse, Dashboard,
-  DailyNutritionSummary, Exercise, FatSecretFoodResult, Food, InsightsResponse, MealPhotoResponse,
+  DailyNutritionSummary, Exercise, FatSecretFoodResult, Food, InsightsResponse, KnowledgeEntry, MealPhotoResponse,
   MealPlanResponse, MealType, NutritionLog, RegisterRequest, UpdateProfileRequest, User, WeightEntry, WorkoutLog,
 } from '../types';
 
@@ -108,6 +108,18 @@ export const aiApi = {
     client.post<MealPhotoResponse>('/ai/analyze-meal-photo', { imageBase64, mediaType }).then((r) => r.data),
   chat: (messages: ChatMessage[]) =>
     client.post<ChatResponse>('/ai/chat', { messages }).then((r) => r.data),
+};
+
+export interface CreateKnowledgeEntryRequest {
+  question: string;
+  answer: string;
+}
+
+export const knowledgeApi = {
+  getAll: () => client.get<KnowledgeEntry[]>('/knowledge').then((r) => r.data),
+  create: (payload: CreateKnowledgeEntryRequest) =>
+    client.post<KnowledgeEntry>('/knowledge', payload).then((r) => r.data),
+  remove: (id: number) => client.delete(`/knowledge/${id}`),
 };
 
 export const reportsApi = {
