@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
 using FitMetrics.Application.Common.Exceptions;
@@ -142,10 +143,36 @@ public class AiService : IAiService
         if (turns.Count == 0)
             throw new ExternalServiceException("Geçerli bir kullanıcı mesajı bulunamadı.");
 
+        // CPU inference için kısa tutuyoruz → daha hızlı yanıt
         var reply = await _claude.ChatAsync(system, turns,
-            new ClaudeOptions(MaxTokens: 1200, Thinking: false, Effort: "medium"), ct);
+            new ClaudeOptions(MaxTokens: 600, Thinking: false, Effort: "medium"), ct);
 
         return new ChatResponse(reply.Trim());
+    }
+
+    public async IAsyncEnumerable<string> ChatStreamAsync(int userId, ChatRequest request, [EnumeratorCancellation] CancellationToken ct = default)
+    {
+        EnsureEnabled();
+
+        var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == userId, ct)
+                   ?? throw new NotFoundException("Kullanıcı", userId);
+
+        var dashboard = await _dashboardService.GetDashboardAsync(userId, ct);
+        var insights = await _insightService.GenerateAsync(userId, ct);
+        var system = BuildChatSystemPrompt(user, dashboard, insights);
+
+        var turns = request.Messages
+            .TakeLast(20)
+            .Select(m => new ChatTurn(m.Role, m.Content))
+            .ToList();
+        while (turns.Count > 0 && turns[0].Role != "user")
+            turns.RemoveAt(0);
+        if (turns.Count == 0)
+            throw new ExternalServiceException("Geçerli bir kullanıcı mesajı bulunamadı.");
+
+        await foreach (var chunk in _claude.ChatStreamAsync(system, turns,
+                           new ClaudeOptions(MaxTokens: 600, Thinking: false, Effort: "medium"), ct))
+            yield return chunk;
     }
 
     private static string BuildChatSystemPrompt(User user, DashboardDto d, InsightsResponse insights)

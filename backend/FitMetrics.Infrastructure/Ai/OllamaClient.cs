@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
 using FitMetrics.Application.Common.Exceptions;
@@ -52,6 +53,71 @@ public class OllamaClient : IClaudeClient
         return SendAsync(_settings.Model, msgs.ToArray(), schema: null, options, ct);
     }
 
+    public async IAsyncEnumerable<string> ChatStreamAsync(string systemPrompt, IReadOnlyList<ChatTurn> messages, ClaudeOptions options, [EnumeratorCancellation] CancellationToken ct = default)
+    {
+        var msgs = new List<object> { new { role = "system", content = systemPrompt } };
+        msgs.AddRange(messages.Select(m => (object)new { role = m.Role, content = m.Content }));
+
+        var body = new Dictionary<string, object?>
+        {
+            ["model"] = _settings.Model,
+            ["messages"] = msgs.ToArray(),
+            ["stream"] = true,
+            ["keep_alive"] = "1h",
+            ["options"] = new { num_predict = options.MaxTokens, temperature = 0.6 }
+        };
+
+        var url = $"{_settings.BaseUrl.TrimEnd('/')}/api/chat";
+        var request = new HttpRequestMessage(HttpMethod.Post, url)
+        {
+            Content = new StringContent(JsonSerializer.Serialize(body), Encoding.UTF8, "application/json")
+        };
+
+        HttpResponseMessage response;
+        try
+        {
+            response = await _http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, ct);
+        }
+        catch (HttpRequestException)
+        {
+            request.Dispose();
+            throw new ExternalServiceException($"Ollama'ya ulaşılamadı ({_settings.BaseUrl}). '{_settings.Model}' modelinin indirildiğinden emin olun.");
+        }
+
+        using (request)
+        using (response)
+        {
+            if (!response.IsSuccessStatusCode)
+                throw new ExternalServiceException($"Ollama hatası ({(int)response.StatusCode}).");
+
+            await using var stream = await response.Content.ReadAsStreamAsync(ct);
+            using var reader = new StreamReader(stream);
+
+            while (true)
+            {
+                var line = await reader.ReadLineAsync(ct);
+                if (line is null) break;
+                if (line.Length == 0) continue;
+
+                string? chunk = null;
+                var done = false;
+                try
+                {
+                    using var doc = JsonDocument.Parse(line);
+                    var root = doc.RootElement;
+                    if (root.TryGetProperty("message", out var m) && m.TryGetProperty("content", out var c))
+                        chunk = c.GetString();
+                    if (root.TryGetProperty("done", out var d) && d.ValueKind == JsonValueKind.True)
+                        done = true;
+                }
+                catch (JsonException) { continue; }
+
+                if (!string.IsNullOrEmpty(chunk)) yield return chunk;
+                if (done) break;
+            }
+        }
+    }
+
     private async Task<string> SendAsync(string model, object[] messages, object? schema, ClaudeOptions options, CancellationToken ct)
     {
         var body = new Dictionary<string, object?>
@@ -59,6 +125,7 @@ public class OllamaClient : IClaudeClient
             ["model"] = model,
             ["messages"] = messages,
             ["stream"] = false,
+            ["keep_alive"] = "1h", // modeli RAM'de tut → ilk yanıttaki yükleme gecikmesini önler
             ["options"] = new { num_predict = options.MaxTokens, temperature = 0.6 }
         };
         if (schema is not null)

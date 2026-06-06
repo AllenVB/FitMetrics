@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
 using FitMetrics.Application.Common.Exceptions;
@@ -44,6 +45,12 @@ public class ClaudeClient : IClaudeClient
     {
         var msgs = messages.Select(m => (object)new { role = m.Role, content = m.Content }).ToArray();
         return SendAsync(BuildBodyWithMessages(systemPrompt, msgs, schema: null, options), ct);
+    }
+
+    // Anthropic için basit fallback: tam yanıtı tek parça olarak döndürür (gerçek SSE streaming gerekirse genişletilebilir).
+    public async IAsyncEnumerable<string> ChatStreamAsync(string systemPrompt, IReadOnlyList<ChatTurn> messages, ClaudeOptions options, [EnumeratorCancellation] CancellationToken ct = default)
+    {
+        yield return await ChatAsync(systemPrompt, messages, options, ct);
     }
 
     private Dictionary<string, object?> BuildBody(string system, object userContent, object? schema, ClaudeOptions options)

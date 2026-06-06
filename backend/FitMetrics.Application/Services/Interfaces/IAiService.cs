@@ -13,4 +13,5 @@ public interface IAiService
     Task<CoachResponse> GenerateCoachingAsync(int userId, CancellationToken ct = default);
     Task<MealPhotoResponse> AnalyzeMealPhotoAsync(AnalyzeMealPhotoRequest request, CancellationToken ct = default);
     Task<ChatResponse> ChatAsync(int userId, ChatRequest request, CancellationToken ct = default);
+    IAsyncEnumerable<string> ChatStreamAsync(int userId, ChatRequest request, CancellationToken ct = default);
 }

@@ -29,4 +29,33 @@ public class AiController : ApiControllerBase
     [HttpPost("chat")]
     public async Task<ActionResult<ChatResponse>> Chat(ChatRequest request, CancellationToken ct)
         => Ok(await _ai.ChatAsync(UserId, request, ct));
+
+    [HttpPost("chat/stream")]
+    public async Task ChatStream(ChatRequest request, CancellationToken ct)
+    {
+        if (!_ai.IsEnabled)
+        {
+            Response.StatusCode = 503;
+            await Response.WriteAsJsonAsync(new { status = 503, message = "Yapay zekâ özelliği yapılandırılmamış." }, ct);
+            return;
+        }
+
+        Response.ContentType = "text/plain; charset=utf-8";
+        try
+        {
+            await foreach (var chunk in _ai.ChatStreamAsync(UserId, request, ct))
+            {
+                await Response.WriteAsync(chunk, ct);
+                await Response.Body.FlushAsync(ct);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // istemci bağlantıyı kapattı — sessizce çık
+        }
+        catch (Exception ex)
+        {
+            await Response.WriteAsync($"\n[HATA] {ex.Message}", ct);
+        }
+    }
 }

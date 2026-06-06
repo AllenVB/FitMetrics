@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { aiApi } from '../api';
-import { getErrorMessage } from '../api/client';
+import { tokenStorage } from '../api/client';
 import { Button, Card, ErrorAlert, Input, PageHeader, Spinner } from '../components/ui';
 import type { ChatMessage } from '../types';
 
@@ -31,15 +31,40 @@ export default function AiAssistant() {
     const content = text.trim();
     if (!content || sending) return;
     setError('');
-    const next: ChatMessage[] = [...messages, { role: 'user', content }];
-    setMessages(next);
+    const base: ChatMessage[] = [...messages, { role: 'user', content }];
+    setMessages([...base, { role: 'assistant', content: '' }]); // boş baloncuk → akışla dolar
     setInput('');
     setSending(true);
     try {
-      const res = await aiApi.chat(next);
-      setMessages((m) => [...m, { role: 'assistant', content: res.reply }]);
+      const res = await fetch('/api/ai/chat/stream', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${tokenStorage.get() ?? ''}`,
+        },
+        body: JSON.stringify({ messages: base }),
+      });
+      if (!res.ok || !res.body) {
+        let msg = 'Yanıt alınamadı.';
+        try {
+          const j = await res.json();
+          msg = j.message ?? msg;
+        } catch { /* gövde metin değil */ }
+        throw new Error(msg);
+      }
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let acc = '';
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        acc += decoder.decode(value, { stream: true });
+        setMessages([...base, { role: 'assistant', content: acc }]);
+      }
+      if (!acc.trim()) setMessages([...base, { role: 'assistant', content: '(boş yanıt)' }]);
     } catch (err) {
-      setError(getErrorMessage(err));
+      setMessages(base); // boş baloncuğu kaldır
+      setError(err instanceof Error ? err.message : 'Bir hata oluştu.');
     } finally {
       setSending(false);
     }
@@ -91,16 +116,10 @@ export default function AiAssistant() {
                     m.role === 'user' ? 'bg-brand-600 text-white' : 'bg-slate-100 text-slate-700'
                   }`}
                 >
-                  {m.content}
+                  {m.content || '…'}
                 </div>
               </div>
             ))}
-
-            {sending && (
-              <div className="flex justify-start">
-                <div className="rounded-2xl bg-slate-100 px-4 py-2 text-sm text-slate-400">yazıyor…</div>
-              </div>
-            )}
             <div ref={endRef} />
           </div>
 

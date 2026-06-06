@@ -26,4 +26,7 @@ public interface IClaudeClient
 
     /// <summary>Çok turlu sohbet: sistem promptu + mesaj geçmişiyle metin yanıtı üretir.</summary>
     Task<string> ChatAsync(string systemPrompt, IReadOnlyList<ChatTurn> messages, ClaudeOptions options, CancellationToken ct = default);
+
+    /// <summary>Sohbet yanıtını parça parça (streaming) döndürür.</summary>
+    IAsyncEnumerable<string> ChatStreamAsync(string systemPrompt, IReadOnlyList<ChatTurn> messages, ClaudeOptions options, CancellationToken ct = default);
 }
