@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { aiApi } from '../api';
 import { tokenStorage } from '../api/client';
-import { Button, Card, ErrorAlert, Input, PageHeader, Spinner } from '../components/ui';
+import { Button, Card, ErrorAlert, Icon, Input, PageHeader, Spinner } from '../components/ui';
 import type { ChatMessage } from '../types';
 
 const SUGGESTIONS = [
@@ -26,6 +26,21 @@ export default function AiAssistant() {
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, sending]);
+
+  // Kalıcı sohbet geçmişini yükle (AI etkinse)
+  useEffect(() => {
+    if (enabled) aiApi.chatHistory().then(setMessages).catch(() => { /* sessiz */ });
+  }, [enabled]);
+
+  const clearHistory = async () => {
+    try {
+      await aiApi.clearChat();
+      setMessages([]);
+      setError('');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Geçmiş temizlenemedi.');
+    }
+  };
 
   const send = async (text: string) => {
     const content = text.trim();
@@ -79,28 +94,44 @@ export default function AiAssistant() {
 
   return (
     <div>
-      <PageHeader title="💬 AI Asistan" subtitle="Verilerine dayalı kişisel sağlık & fitness sohbeti" />
+      <PageHeader title="AI Asistan" subtitle="Verilerine dayalı kişisel sağlık & fitness sohbeti" />
 
       {!enabled ? (
-        <Card className="border-l-4 border-amber-400">
-          <h3 className="mb-1 font-semibold text-slate-800">⚠️ AI Asistan şu an kapalı</h3>
-          <p className="text-sm text-slate-600">
-            Sohbet için sunucuda <code className="rounded bg-slate-100 px-1">ANTHROPIC_API_KEY</code> tanımlı olmalı.
-            Uygulamanın geri kalanı anahtar olmadan da çalışır.
+        <Card className="border-l-4 border-l-amber-400">
+          <h3 className="mb-1 flex items-center gap-2 font-semibold text-on-surface">
+            <Icon name="warning" className="text-amber-400" /> AI Asistan şu an kapalı
+          </h3>
+          <p className="text-body-sm text-on-surface-variant">
+            Sohbet için sunucuda bir AI sağlayıcı gerekir. Ollama çalışıyorsa veya{' '}
+            <code className="rounded bg-white/10 px-1">Anthropic:ApiKey</code> tanımlıysa otomatik etkinleşir.
+            Uygulamanın geri kalanı AI olmadan da çalışır.
           </p>
         </Card>
       ) : (
         <Card>
-          <div className="space-y-3 overflow-y-auto pr-1" style={{ maxHeight: '58vh', minHeight: '40vh' }}>
+          {messages.length > 0 && (
+            <div className="mb-3 flex items-center justify-between">
+              <span className="flex items-center gap-1.5 text-xs text-on-surface-variant">
+                <Icon name="history" className="text-sm" /> Sohbet geçmişin kayıtlı
+              </span>
+              <button
+                onClick={clearHistory}
+                className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-on-surface-variant transition-colors hover:bg-error/10 hover:text-error"
+              >
+                <Icon name="delete_sweep" className="text-sm" /> Geçmişi temizle
+              </button>
+            </div>
+          )}
+          <div className="custom-scrollbar space-y-5 overflow-y-auto pr-1" style={{ maxHeight: '58vh', minHeight: '40vh' }}>
             {messages.length === 0 && (
               <div className="py-8 text-center">
-                <p className="mb-4 text-sm text-slate-500">Merhaba! Verilerine bakarak sorularını yanıtlarım. Bir şeyler dene:</p>
+                <p className="mb-4 text-body-sm text-on-surface-variant">Merhaba! Verilerine bakarak sorularını yanıtlarım. Bir şeyler dene:</p>
                 <div className="flex flex-wrap justify-center gap-2">
                   {SUGGESTIONS.map((s) => (
                     <button
                       key={s}
                       onClick={() => send(s)}
-                      className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-600 transition hover:border-brand-400 hover:text-brand-700"
+                      className="rounded-full border border-white/10 bg-surface-container-high px-3 py-1.5 text-body-sm text-on-surface-variant transition-colors hover:border-primary/40 hover:text-primary"
                     >
                       {s}
                     </button>
@@ -110,14 +141,26 @@ export default function AiAssistant() {
             )}
 
             {messages.map((m, i) => (
-              <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+              <div key={i} className={`flex items-start gap-3 ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                {m.role === 'assistant' && (
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary-container">
+                    <Icon name="psychology" className="text-sm text-on-primary-container" />
+                  </div>
+                )}
                 <div
-                  className={`max-w-[80%] whitespace-pre-line rounded-2xl px-4 py-2 text-sm leading-relaxed ${
-                    m.role === 'user' ? 'bg-brand-600 text-white' : 'bg-slate-100 text-slate-700'
+                  className={`max-w-[80%] whitespace-pre-line rounded-2xl px-4 py-2.5 text-body-sm leading-relaxed ${
+                    m.role === 'user'
+                      ? 'rounded-tr-none bg-primary text-on-primary'
+                      : 'rounded-tl-none border border-white/5 bg-surface-container-high text-on-surface'
                   }`}
                 >
                   {m.content || '…'}
                 </div>
+                {m.role === 'user' && (
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-surface-container">
+                    <Icon name="person" className="text-sm text-on-surface-variant" />
+                  </div>
+                )}
               </div>
             ))}
             <div ref={endRef} />

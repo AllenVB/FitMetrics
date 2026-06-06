@@ -191,6 +191,7 @@ public class AiService : IAiService
         sb.AppendLine($"Hedef: {GoalText(user.GoalType)}{(user.TargetWeightKg.HasValue ? $" · hedef kilo {user.TargetWeightKg} kg" : "")}");
         sb.AppendLine($"Günlük hedef: {d.Today.CalorieGoal} kcal · {d.Today.ProteinGoal} g protein · {d.WaterGoalMl} ml su");
         sb.AppendLine($"Bugün alınan: {Math.Round(d.Today.TotalCalories)} kcal · {Math.Round(d.Today.TotalProtein)} g protein · {Math.Round(d.Today.TotalCarbs)} g karb · {Math.Round(d.Today.TotalFat)} g yağ");
+        sb.AppendLine($"Bugün içilen su: {d.WaterIntakeMl} / {d.WaterGoalMl} ml");
         sb.AppendLine($"Bu hafta: {d.WorkoutsThisWeek} antrenman · {Math.Round(d.CaloriesBurnedThisWeek)} kcal yakıldı");
         sb.AppendLine();
         sb.AppendLine("[GÜNCEL ANALİZLER]");

@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getErrorMessage } from '../api/client';
-import { Button, ErrorAlert, Field, Input, Select } from '../components/ui';
+import { Button, ErrorAlert, Field, Icon, Input, Select } from '../components/ui';
 import { activityOptions, genderOptions, goalOptions } from '../lib/labels';
 import type { ActivityLevel, Gender, GoalType } from '../types';
 
@@ -43,13 +43,14 @@ export default function Register() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-900 to-brand-900 p-4">
-      <div className="w-full max-w-2xl rounded-2xl bg-white p-8 shadow-2xl">
-        <div className="mb-6 text-center">
-          <div className="text-3xl font-bold text-slate-800">
-            <span className="text-brand-500">⚡</span> FitMetrics
+    <div className="flex min-h-screen items-center justify-center bg-background p-4">
+      <div className="w-full max-w-2xl clean-card rounded-2xl p-8 shadow-2xl">
+        <div className="mb-6 flex flex-col items-center text-center">
+          <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-primary">
+            <Icon name="ecg_heart" className="text-2xl text-on-primary" />
           </div>
-          <p className="mt-1 text-sm text-slate-500">Hesap oluştur ve hedefini belirle</p>
+          <div className="ai-gradient-text text-3xl font-bold">FitMetrics</div>
+          <p className="mt-1 text-body-sm text-on-surface-variant">Hesap oluştur ve hedefini belirle</p>
         </div>
 
         <form onSubmit={onSubmit} className="space-y-4">
@@ -98,9 +99,9 @@ export default function Register() {
           </Button>
         </form>
 
-        <p className="mt-6 text-center text-sm text-slate-500">
+        <p className="mt-6 text-center text-body-sm text-on-surface-variant">
           Zaten hesabın var mı?{' '}
-          <Link to="/login" className="font-semibold text-brand-600 hover:underline">Giriş yap</Link>
+          <Link to="/login" className="font-semibold text-primary hover:underline">Giriş yap</Link>
         </p>
       </div>
     </div>

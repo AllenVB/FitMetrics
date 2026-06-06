@@ -75,9 +75,14 @@ public class DashboardService : IDashboardService
         var macros = new MacroBreakdownDto(todaySummary.TotalProtein, todaySummary.TotalCarbs, todaySummary.TotalFat);
         var bmi = HealthCalculator.CalculateBmi(user.CurrentWeightKg, user.HeightCm);
 
+        var waterIntakeMl = await _db.WaterLogs
+            .Where(w => w.UserId == userId && w.LoggedAt >= today && w.LoggedAt < today.AddDays(1))
+            .SumAsync(w => w.AmountMl, ct);
+
         return new DashboardDto(
             todaySummary,
             user.DailyWaterGoalMl,
+            waterIntakeMl,
             user.CurrentWeightKg,
             user.TargetWeightKg,
             bmi,

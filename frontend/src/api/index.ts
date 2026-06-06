@@ -1,8 +1,8 @@
 import client from './client';
 import type {
-  AuthResponse, BarcodeLookupResult, ChatMessage, ChatResponse, ClientSummary, CoachResponse, Dashboard,
-  DailyNutritionSummary, Exercise, FatSecretFoodResult, Food, InsightsResponse, KnowledgeEntry, MealPhotoResponse,
-  MealPlanResponse, MealType, NutritionLog, RegisterRequest, UpdateProfileRequest, User, WeightEntry, WorkoutLog,
+  AiFoodSuggestion, AuthResponse, BarcodeLookupResult, ChatMessage, ChatResponse, ClientSummary, CoachResponse, Dashboard,
+  DailyNutritionSummary, Exercise, Food, InsightsResponse, KnowledgeEntry, MealPhotoResponse,
+  MealPlanResponse, MealType, NutritionLog, RegisterRequest, UpdateProfileRequest, User, WaterToday, WeightEntry, WorkoutLog,
 } from '../types';
 
 export interface CreateFoodRequest {
@@ -64,9 +64,12 @@ export const nutritionApi = {
   lookupBarcode: (code: string) =>
     client.get<BarcodeLookupResult>(`/nutrition/barcode/${encodeURIComponent(code)}`).then((r) => r.data),
   search: (q: string) =>
-    client.get<FatSecretFoodResult[]>('/nutrition/search', { params: { q } }).then((r) => r.data),
-  importFood: (foodId: string) =>
-    client.post<Food>('/nutrition/import', { foodId }).then((r) => r.data),
+    client.get<AiFoodSuggestion[]>('/nutrition/search', { params: { q } }).then((r) => r.data),
+};
+
+export const waterApi = {
+  today: () => client.get<WaterToday>('/water/today').then((r) => r.data),
+  add: (amountMl: number) => client.post<WaterToday>('/water', { amountMl }).then((r) => r.data),
 };
 
 export const workoutApi = {
@@ -108,6 +111,8 @@ export const aiApi = {
     client.post<MealPhotoResponse>('/ai/analyze-meal-photo', { imageBase64, mediaType }).then((r) => r.data),
   chat: (messages: ChatMessage[]) =>
     client.post<ChatResponse>('/ai/chat', { messages }).then((r) => r.data),
+  chatHistory: () => client.get<ChatMessage[]>('/ai/chat/history').then((r) => r.data),
+  clearChat: () => client.delete('/ai/chat/history'),
 };
 
 export interface CreateKnowledgeEntryRequest {

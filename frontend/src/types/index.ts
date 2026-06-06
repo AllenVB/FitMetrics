@@ -160,6 +160,7 @@ export interface MacroBreakdown {
 export interface Dashboard {
   today: DailyNutritionSummary;
   waterGoalMl: number;
+  waterIntakeMl: number;
   currentWeightKg?: number | null;
   targetWeightKg?: number | null;
   bmi: number;
@@ -234,6 +235,22 @@ export interface FatSecretFoodResult {
   name: string;
   brand?: string | null;
   description: string;
+}
+
+/** AI (LLM) besin arama önerisi — 100g başına tahmini değerler. */
+export interface AiFoodSuggestion {
+  name: string;
+  brand?: string | null;
+  description: string;
+  caloriesPer100g: number;
+  proteinPer100g: number;
+  carbsPer100g: number;
+  fatPer100g: number;
+}
+
+export interface WaterToday {
+  intakeMl: number;
+  goalMl: number;
 }
 
 export interface ChatMessage {

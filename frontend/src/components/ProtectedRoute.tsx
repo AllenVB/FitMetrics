@@ -6,8 +6,9 @@ export default function ProtectedRoute() {
 
   if (loading) {
     return (
-      <div className="flex h-screen items-center justify-center text-slate-500">
-        <div className="animate-pulse text-lg">Yükleniyor…</div>
+      <div className="flex h-screen items-center justify-center gap-3 bg-background text-on-surface-variant">
+        <span className="material-symbols-outlined animate-spin text-primary">progress_activity</span>
+        <span className="text-body-sm">Yükleniyor…</span>
       </div>
     );
   }

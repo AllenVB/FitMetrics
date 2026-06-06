@@ -1,10 +1,17 @@
 import type {
-  ButtonHTMLAttributes, InputHTMLAttributes, ReactNode, SelectHTMLAttributes,
+  ButtonHTMLAttributes, InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTMLAttributes,
 } from 'react';
+
+/** Material Symbols Outlined icon. */
+export function Icon({ name, className = '', filled = false }: {
+  name: string; className?: string; filled?: boolean;
+}) {
+  return <span className={`material-symbols-outlined${filled ? ' filled' : ''} ${className}`}>{name}</span>;
+}
 
 export function Card({ className = '', children }: { className?: string; children: ReactNode }) {
   return (
-    <div className={`rounded-xl border border-slate-200 bg-white p-5 shadow-sm ${className}`}>
+    <div className={`clean-card rounded-2xl p-6 transition-colors hover:border-primary/20 ${className}`}>
       {children}
     </div>
   );
@@ -14,38 +21,41 @@ export function PageHeader({ title, subtitle, action }: {
   title: string; subtitle?: string; action?: ReactNode;
 }) {
   return (
-    <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
+    <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
       <div>
-        <h1 className="text-2xl font-bold text-slate-800">{title}</h1>
-        {subtitle && <p className="mt-1 text-sm text-slate-500">{subtitle}</p>}
+        <h1 className="font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-surface">{title}</h1>
+        {subtitle && <p className="mt-1 text-body-lg text-on-surface-variant">{subtitle}</p>}
       </div>
       {action}
     </div>
   );
 }
 
-const accentMap: Record<string, string> = {
-  brand: 'bg-brand-50 text-brand-700',
-  blue: 'bg-blue-50 text-blue-700',
-  amber: 'bg-amber-50 text-amber-700',
-  rose: 'bg-rose-50 text-rose-700',
-  violet: 'bg-violet-50 text-violet-700',
+const accentMap: Record<string, { border: string; chip: string; text: string }> = {
+  primary: { border: 'border-l-primary', chip: 'bg-primary/10 text-primary', text: 'text-primary' },
+  brand: { border: 'border-l-primary', chip: 'bg-primary/10 text-primary', text: 'text-primary' },
+  blue: { border: 'border-l-blue-400', chip: 'bg-blue-500/10 text-blue-400', text: 'text-blue-400' },
+  green: { border: 'border-l-tertiary', chip: 'bg-tertiary/10 text-tertiary', text: 'text-tertiary' },
+  tertiary: { border: 'border-l-tertiary', chip: 'bg-tertiary/10 text-tertiary', text: 'text-tertiary' },
+  secondary: { border: 'border-l-secondary', chip: 'bg-secondary/10 text-secondary', text: 'text-secondary' },
+  violet: { border: 'border-l-secondary', chip: 'bg-secondary/10 text-secondary', text: 'text-secondary' },
+  amber: { border: 'border-l-amber-400', chip: 'bg-amber-500/10 text-amber-400', text: 'text-amber-400' },
+  rose: { border: 'border-l-error', chip: 'bg-error/10 text-error', text: 'text-error' },
 };
 
-export function StatCard({ icon, label, value, sub, accent = 'brand' }: {
-  icon: string; label: string; value: ReactNode; sub?: ReactNode; accent?: keyof typeof accentMap;
+export function StatCard({ icon, label, value, sub, accent = 'primary' }: {
+  icon: ReactNode; label: string; value: ReactNode; sub?: ReactNode; accent?: keyof typeof accentMap;
 }) {
+  const a = accentMap[accent] ?? accentMap.primary;
   return (
-    <Card className="flex items-center gap-4">
-      <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-lg text-2xl ${accentMap[accent]}`}>
+    <div className={`clean-card rounded-2xl p-5 border-l-4 ${a.border} transition-colors hover:bg-surface-container-high`}>
+      <div className={`mb-4 flex h-11 w-11 items-center justify-center rounded-xl text-xl ${a.chip}`}>
         {icon}
       </div>
-      <div className="min-w-0">
-        <div className="text-xs font-medium uppercase tracking-wide text-slate-400">{label}</div>
-        <div className="truncate text-xl font-bold text-slate-800">{value}</div>
-        {sub && <div className="text-xs text-slate-500">{sub}</div>}
-      </div>
-    </Card>
+      <div className="font-label-caps text-label-caps uppercase text-on-surface-variant">{label}</div>
+      <div className="mt-1 truncate text-2xl font-bold text-on-surface">{value}</div>
+      {sub && <div className="mt-0.5 text-xs text-on-surface-variant">{sub}</div>}
+    </div>
   );
 }
 
@@ -55,14 +65,14 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 export function Button({ variant = 'primary', className = '', ...props }: ButtonProps) {
   const variants = {
-    primary: 'bg-brand-600 text-white hover:bg-brand-700 disabled:bg-brand-300',
-    secondary: 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50',
-    danger: 'bg-rose-600 text-white hover:bg-rose-700',
-    ghost: 'text-slate-500 hover:bg-slate-100',
+    primary: 'bg-primary text-on-primary font-bold hover:brightness-110 disabled:bg-primary/40 disabled:text-on-primary/60',
+    secondary: 'clean-card text-on-surface hover:bg-surface-container-high',
+    danger: 'bg-error text-on-error font-bold hover:brightness-110',
+    ghost: 'text-on-surface-variant hover:bg-white/5 hover:text-on-surface',
   };
   return (
     <button
-      className={`rounded-lg px-4 py-2 text-sm font-semibold transition disabled:cursor-not-allowed ${variants[variant]} ${className}`}
+      className={`rounded-xl px-4 py-2.5 text-body-sm font-semibold transition-all active:scale-95 disabled:cursor-not-allowed disabled:active:scale-100 ${variants[variant]} ${className}`}
       {...props}
     />
   );
@@ -71,28 +81,33 @@ export function Button({ variant = 'primary', className = '', ...props }: Button
 export function Field({ label, children, hint }: { label: string; children: ReactNode; hint?: string }) {
   return (
     <label className="block">
-      <span className="mb-1 block text-sm font-medium text-slate-600">{label}</span>
+      <span className="mb-1.5 block text-body-sm font-medium text-on-surface-variant">{label}</span>
       {children}
-      {hint && <span className="mt-1 block text-xs text-slate-400">{hint}</span>}
+      {hint && <span className="mt-1 block text-xs text-on-surface-variant/70">{hint}</span>}
     </label>
   );
 }
 
 const fieldClasses =
-  'w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-100';
+  'w-full rounded-xl border border-white/10 bg-surface-container px-3.5 py-2.5 text-body-sm text-on-surface placeholder:text-on-surface-variant/50 outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20';
 
 export function Input(props: InputHTMLAttributes<HTMLInputElement>) {
   return <input className={fieldClasses} {...props} />;
 }
 
-export function Select(props: SelectHTMLAttributes<HTMLSelectElement>) {
-  return <select className={fieldClasses} {...props} />;
+export function Select({ className = '', ...props }: SelectHTMLAttributes<HTMLSelectElement>) {
+  return <select className={`${fieldClasses} appearance-none ${className}`} {...props} />;
+}
+
+export function Textarea(props: TextareaHTMLAttributes<HTMLTextAreaElement>) {
+  return <textarea className={fieldClasses} {...props} />;
 }
 
 export function Spinner({ label = 'Yükleniyor…' }: { label?: string }) {
   return (
-    <div className="flex items-center justify-center py-16 text-slate-400">
-      <span className="animate-pulse text-sm">{label}</span>
+    <div className="flex items-center justify-center gap-3 py-16 text-on-surface-variant">
+      <span className="material-symbols-outlined animate-spin text-primary">progress_activity</span>
+      <span className="text-body-sm">{label}</span>
     </div>
   );
 }
@@ -100,7 +115,8 @@ export function Spinner({ label = 'Yükleniyor…' }: { label?: string }) {
 export function ErrorAlert({ message }: { message: string }) {
   if (!message) return null;
   return (
-    <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+    <div className="flex items-center gap-2 rounded-xl border border-error/30 bg-error/10 px-4 py-3 text-body-sm text-error">
+      <span className="material-symbols-outlined text-base">error</span>
       {message}
     </div>
   );
@@ -108,7 +124,7 @@ export function ErrorAlert({ message }: { message: string }) {
 
 export function EmptyState({ message }: { message: string }) {
   return (
-    <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 px-4 py-10 text-center text-sm text-slate-400">
+    <div className="rounded-2xl border border-dashed border-white/10 bg-surface-container-low px-4 py-12 text-center text-body-sm text-on-surface-variant">
       {message}
     </div>
   );

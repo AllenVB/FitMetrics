@@ -2,7 +2,8 @@ import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { Line } from 'react-chartjs-2';
 import { reportsApi, weightApi } from '../api';
 import { getErrorMessage } from '../api/client';
-import { Button, Card, EmptyState, ErrorAlert, Field, Input, PageHeader, Spinner, StatCard } from '../components/ui';
+import { Button, Card, EmptyState, ErrorAlert, Field, Icon, Input, PageHeader, Spinner, StatCard } from '../components/ui';
+import { chartColors } from '../lib/charts';
 import { formatDate } from '../lib/labels';
 import type { WeightEntry } from '../types';
 
@@ -86,8 +87,9 @@ export default function Progress() {
     datasets: [{
       label: 'Kilo (kg)',
       data: entries.map((e) => e.weightKg),
-      borderColor: '#7c3aed',
-      backgroundColor: 'rgba(124, 58, 237, 0.12)',
+      borderColor: chartColors.primary,
+      backgroundColor: chartColors.primaryFill,
+      pointBackgroundColor: chartColors.primary,
       fill: true,
       tension: 0.3,
     }],
@@ -98,8 +100,9 @@ export default function Progress() {
     datasets: [{
       label: 'Yağ Oranı (%)',
       data: entries.map((e) => e.bodyFatPercentage ?? null),
-      borderColor: '#f59e0b',
-      backgroundColor: 'rgba(245, 158, 11, 0.12)',
+      borderColor: '#fbbf24',
+      backgroundColor: 'rgba(251, 191, 36, 0.12)',
+      pointBackgroundColor: '#fbbf24',
       fill: true,
       tension: 0.3,
       spanGaps: true,
@@ -109,16 +112,20 @@ export default function Progress() {
     responsive: true,
     maintainAspectRatio: false,
     plugins: { legend: { position: 'bottom' as const, labels: { boxWidth: 12, font: { size: 11 } } } },
+    scales: {
+      x: { grid: { color: 'rgba(255,255,255,0.05)' } },
+      y: { grid: { color: 'rgba(255,255,255,0.05)' } },
+    },
   };
 
   return (
     <div>
       <PageHeader
-        title="📈 İlerleme"
+        title="İlerleme"
         subtitle="Kilo ve vücut yağı değişimini takip et"
         action={
-          <Button variant="secondary" onClick={downloadReport} disabled={downloading}>
-            {downloading ? 'Hazırlanıyor…' : '📄 PDF Rapor'}
+          <Button variant="secondary" onClick={downloadReport} disabled={downloading} className="flex items-center gap-1.5">
+            <Icon name="picture_as_pdf" className="text-base" /> {downloading ? 'Hazırlanıyor…' : 'PDF Rapor'}
           </Button>
         }
       />
@@ -141,10 +148,10 @@ export default function Progress() {
       ) : (
         <>
           <div className="mb-6 grid grid-cols-3 gap-4">
-            <StatCard icon="🏁" label="Başlangıç" value={`${first.weightKg} kg`} sub={formatDate(first.recordedAt)} accent="blue" />
-            <StatCard icon="⚖️" label="Güncel" value={`${last.weightKg} kg`} sub={formatDate(last.recordedAt)} accent="violet" />
+            <StatCard icon={<Icon name="flag" />} label="Başlangıç" value={`${first.weightKg} kg`} sub={formatDate(first.recordedAt)} accent="blue" />
+            <StatCard icon={<Icon name="monitor_weight" />} label="Güncel" value={`${last.weightKg} kg`} sub={formatDate(last.recordedAt)} accent="violet" />
             <StatCard
-              icon={change <= 0 ? '📉' : '📈'}
+              icon={<Icon name={change <= 0 ? 'trending_down' : 'trending_up'} />}
               label="Değişim"
               value={`${change > 0 ? '+' : ''}${change} kg`}
               accent={change <= 0 ? 'brand' : 'rose'}
@@ -153,15 +160,15 @@ export default function Progress() {
 
           <div className="mb-6 grid gap-4 lg:grid-cols-2">
             <Card>
-              <h2 className="mb-3 font-semibold text-slate-800">Kilo Değişimi</h2>
+              <h2 className="mb-3 text-title-md font-bold text-on-surface">Kilo Değişimi</h2>
               <div className="h-64"><Line data={weightChart} options={chartOptions} /></div>
             </Card>
             <Card>
-              <h2 className="mb-3 font-semibold text-slate-800">Vücut Yağı</h2>
+              <h2 className="mb-3 text-title-md font-bold text-on-surface">Vücut Yağı</h2>
               {hasBodyFat ? (
                 <div className="h-64"><Line data={bodyFatChart} options={chartOptions} /></div>
               ) : (
-                <div className="flex h-64 items-center justify-center text-sm text-slate-400">
+                <div className="flex h-64 items-center justify-center text-body-sm text-on-surface-variant">
                   Yağ oranı kaydı eklenince grafik burada görünecek.
                 </div>
               )}
@@ -169,16 +176,18 @@ export default function Progress() {
           </div>
 
           <Card>
-            <h2 className="mb-3 font-semibold text-slate-800">Tüm Kayıtlar</h2>
-            <ul className="divide-y divide-slate-100">
+            <h2 className="mb-3 text-title-md font-bold text-on-surface">Tüm Kayıtlar</h2>
+            <ul className="divide-y divide-white/5">
               {[...entries].reverse().map((e) => (
                 <li key={e.id} className="flex items-center justify-between py-2.5">
                   <div>
-                    <span className="font-medium text-slate-700">{e.weightKg} kg</span>
-                    {e.bodyFatPercentage != null && <span className="ml-2 text-sm text-amber-600">%{e.bodyFatPercentage} yağ</span>}
-                    <span className="ml-2 text-xs text-slate-400">{formatDate(e.recordedAt)}</span>
+                    <span className="font-medium text-on-surface">{e.weightKg} kg</span>
+                    {e.bodyFatPercentage != null && <span className="ml-2 text-body-sm text-amber-400">%{e.bodyFatPercentage} yağ</span>}
+                    <span className="ml-2 text-xs text-on-surface-variant">{formatDate(e.recordedAt)}</span>
                   </div>
-                  <button onClick={() => onDelete(e.id)} className="rounded-md px-2 py-1 text-sm text-rose-500 hover:bg-rose-50">Sil</button>
+                  <button onClick={() => onDelete(e.id)} className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-on-surface-variant transition-colors hover:bg-error/10 hover:text-error" title="Sil">
+                    <Icon name="delete" className="text-lg" />
+                  </button>
                 </li>
               ))}
             </ul>

@@ -35,6 +35,8 @@ public static class DependencyInjection
         services.AddScoped<IReportService, ReportService>();
         services.AddScoped<IDietitianService, DietitianService>();
         services.AddScoped<IKnowledgeService, KnowledgeService>();
+        services.AddScoped<IWaterService, WaterService>();
+        services.AddScoped<IChatHistoryService, ChatHistoryService>();
 
         return services;
     }

@@ -11,6 +11,7 @@ public record MacroBreakdownDto(double Protein, double Carbs, double Fat);
 public record DashboardDto(
     DailyNutritionSummaryDto Today,
     int WaterGoalMl,
+    int WaterIntakeMl,
     double? CurrentWeightKg,
     double? TargetWeightKg,
     double Bmi,

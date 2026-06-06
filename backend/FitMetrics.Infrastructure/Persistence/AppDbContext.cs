@@ -20,6 +20,8 @@ public class AppDbContext : DbContext, IApplicationDbContext
     public DbSet<WeightEntry> WeightEntries => Set<WeightEntry>();
     public DbSet<DietitianClient> DietitianClients => Set<DietitianClient>();
     public DbSet<KnowledgeEntry> KnowledgeEntries => Set<KnowledgeEntry>();
+    public DbSet<WaterLog> WaterLogs => Set<WaterLog>();
+    public DbSet<ChatMessage> ChatMessages => Set<ChatMessage>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

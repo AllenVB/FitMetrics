@@ -3,7 +3,7 @@ import { profileApi } from '../api';
 import { getErrorMessage } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import {
-  Button, Card, ErrorAlert, Field, Input, PageHeader, Select, StatCard,
+  Button, Card, ErrorAlert, Field, Icon, Input, PageHeader, Select, StatCard,
 } from '../components/ui';
 import { activityOptions, genderOptions, goalLabels, goalOptions } from '../lib/labels';
 import type { ActivityLevel, Gender, GoalType } from '../types';
@@ -62,17 +62,17 @@ export default function Profile() {
 
   return (
     <div>
-      <PageHeader title="⚙️ Profil" subtitle="Bilgilerini ve hedeflerini güncelle" />
+      <PageHeader title="Profil" subtitle="Bilgilerini ve hedeflerini güncelle" />
 
       <div className="mb-6 grid gap-4 sm:grid-cols-3">
-        <StatCard icon="🔥" label="Günlük Kalori" value={`${user!.dailyCalorieGoal} kcal`} accent="amber" />
-        <StatCard icon="🥩" label="Günlük Protein" value={`${user!.dailyProteinGoal} g`} accent="brand" />
-        <StatCard icon="⚖️" label="BMI" value={user!.bmi} sub={goalLabels[user!.goalType]} accent="violet" />
+        <StatCard icon={<Icon name="local_fire_department" />} label="Günlük Kalori" value={`${user!.dailyCalorieGoal} kcal`} accent="amber" />
+        <StatCard icon={<Icon name="restaurant" />} label="Günlük Protein" value={`${user!.dailyProteinGoal} g`} accent="brand" />
+        <StatCard icon={<Icon name="monitor_weight" />} label="BMI" value={user!.bmi} sub={goalLabels[user!.goalType]} accent="violet" />
       </div>
 
       <form onSubmit={onSubmit} className="space-y-6">
         <Card>
-          <h2 className="mb-4 font-semibold text-slate-800">Kişisel Bilgiler</h2>
+          <h2 className="mb-4 text-title-md font-bold text-on-surface">Kişisel Bilgiler</h2>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <Field label="Ad Soyad"><Input value={fullName} onChange={(e) => setFullName(e.target.value)} required /></Field>
             <Field label="Yaş"><Input type="number" value={age} onChange={(e) => setAge(Number(e.target.value))} min={10} max={120} /></Field>
@@ -101,9 +101,9 @@ export default function Profile() {
 
         <Card>
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="font-semibold text-slate-800">Günlük Hedefler</h2>
-            <label className="flex items-center gap-2 text-sm text-slate-600">
-              <input type="checkbox" checked={autoGoals} onChange={(e) => setAutoGoals(e.target.checked)} className="h-4 w-4 rounded border-slate-300" />
+            <h2 className="text-title-md font-bold text-on-surface">Günlük Hedefler</h2>
+            <label className="flex items-center gap-2 text-body-sm text-on-surface-variant">
+              <input type="checkbox" checked={autoGoals} onChange={(e) => setAutoGoals(e.target.checked)} className="h-4 w-4 rounded border-white/20 bg-surface-container accent-primary" />
               Otomatik hesapla
             </label>
           </div>
@@ -119,7 +119,7 @@ export default function Profile() {
             </Field>
           </div>
           {autoGoals && (
-            <p className="mt-3 text-xs text-slate-400">
+            <p className="mt-3 text-xs text-on-surface-variant/70">
               Hedefler, vücut bilgilerine göre (Mifflin-St Jeor + aktivite + hedef) otomatik hesaplanacak.
             </p>
           )}
@@ -127,7 +127,11 @@ export default function Profile() {
 
         <div className="flex items-center gap-4">
           <Button type="submit" disabled={loading}>{loading ? 'Kaydediliyor…' : 'Kaydet'}</Button>
-          {saved && <span className="text-sm font-medium text-emerald-600">✓ Bilgiler güncellendi</span>}
+          {saved && (
+            <span className="flex items-center gap-1.5 text-body-sm font-medium text-tertiary">
+              <Icon name="check_circle" className="text-base" /> Bilgiler güncellendi
+            </span>
+          )}
         </div>
         <ErrorAlert message={error} />
       </form>

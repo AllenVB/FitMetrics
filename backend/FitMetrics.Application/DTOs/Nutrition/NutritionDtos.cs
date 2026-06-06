@@ -40,6 +40,19 @@ public record BarcodeLookupResult(
 /// <summary>FatSecret besin arama sonucu öğesi (liste için).</summary>
 public record FatSecretFoodResult(string Id, string Name, string? Brand, string Description);
 
+/// <summary>
+/// AI (LLM) tabanlı besin arama önerisi. 100g başına tahmini değerler içerir;
+/// seçilince doğrudan CreateFood ile katalog'a eklenebilir.
+/// </summary>
+public record AiFoodSuggestion(
+    string Name,
+    string? Brand,
+    string Description,
+    double CaloriesPer100g,
+    double ProteinPer100g,
+    double CarbsPer100g,
+    double FatPer100g);
+
 /// <summary>Dış kaynaktan içe aktarılacak besinin 100g başına değerleri.</summary>
 public record FoodImport(
     string Name,

@@ -1,28 +1,180 @@
 @import "tailwindcss";
 
+/* ============================================================
+   FitMetrics — Material 3 "dark health analytics" design system
+   (Tailwind v4 @theme tokens)
+   ============================================================ */
 @theme {
-  --color-brand-50: #ecfdf5;
-  --color-brand-100: #d1fae5;
-  --color-brand-200: #a7f3d0;
-  --color-brand-300: #6ee7b7;
-  --color-brand-400: #34d399;
-  --color-brand-500: #10b981;
-  --color-brand-600: #059669;
-  --color-brand-700: #047857;
-  --color-brand-800: #065f46;
-  --color-brand-900: #064e3b;
+  /* ---- Color roles ---- */
+  --color-background: #0b1326;
+  --color-on-background: #dae2fd;
+  --color-surface: #0b1326;
+  --color-on-surface: #dae2fd;
+  --color-surface-dim: #0b1326;
+  --color-surface-bright: #31394d;
+  --color-surface-variant: #2d3449;
+  --color-on-surface-variant: #c2c6d6;
+  --color-surface-container-lowest: #060e20;
+  --color-surface-container-low: #131b2e;
+  --color-surface-container: #171f33;
+  --color-surface-container-high: #222a3d;
+  --color-surface-container-highest: #2d3449;
+
+  --color-primary: #adc6ff;
+  --color-on-primary: #002e6a;
+  --color-primary-container: #4d8eff;
+  --color-on-primary-container: #00285d;
+  --color-primary-fixed: #d8e2ff;
+  --color-primary-fixed-dim: #adc6ff;
+  --color-on-primary-fixed: #001a42;
+  --color-on-primary-fixed-variant: #004395;
+  --color-inverse-primary: #005ac2;
+  --color-surface-tint: #adc6ff;
+
+  --color-secondary: #c2a4ff;
+  --color-on-secondary: #3c0091;
+  --color-secondary-container: #6f2be0;
+  --color-on-secondary-container: #c4abff;
+  --color-secondary-fixed: #e9ddff;
+  --color-secondary-fixed-dim: #c2a4ff;
+  --color-on-secondary-fixed: #23005c;
+  --color-on-secondary-fixed-variant: #5516be;
+
+  --color-tertiary: #2fe6a0;
+  --color-on-tertiary: #003824;
+  --color-tertiary-container: #00c281;
+  --color-on-tertiary-container: #00311f;
+  --color-tertiary-fixed: #6ffbbe;
+  --color-tertiary-fixed-dim: #2fe6a0;
+  --color-on-tertiary-fixed: #002113;
+  --color-on-tertiary-fixed-variant: #005236;
+
+  --color-error: #ffb4ab;
+  --color-on-error: #690005;
+  --color-error-container: #93000a;
+  --color-on-error-container: #ffdad6;
+
+  --color-outline: #8c909f;
+  --color-outline-variant: #424754;
+  --color-inverse-surface: #dae2fd;
+  --color-inverse-on-surface: #283044;
+
+  /* ---- Font families ---- */
+  --font-body-sm: "Inter", sans-serif;
+  --font-body-lg: "Inter", sans-serif;
+  --font-title-md: "Inter", sans-serif;
+  --font-headline-lg: "Inter", sans-serif;
+  --font-headline-lg-mobile: "Inter", sans-serif;
+  --font-display-lg: "Inter", sans-serif;
+  --font-label-caps: "Geist", "Inter", sans-serif;
+
+  /* ---- Type scale ---- */
+  --text-body-sm: 14px;
+  --text-body-sm--line-height: 20px;
+  --text-body-sm--font-weight: 400;
+  --text-body-lg: 16px;
+  --text-body-lg--line-height: 24px;
+  --text-body-lg--font-weight: 400;
+  --text-label-caps: 12px;
+  --text-label-caps--line-height: 16px;
+  --text-label-caps--letter-spacing: 0.05em;
+  --text-label-caps--font-weight: 600;
+  --text-title-md: 20px;
+  --text-title-md--line-height: 28px;
+  --text-title-md--font-weight: 500;
+  --text-headline-lg-mobile: 24px;
+  --text-headline-lg-mobile--line-height: 32px;
+  --text-headline-lg-mobile--font-weight: 600;
+  --text-headline-lg: 32px;
+  --text-headline-lg--line-height: 40px;
+  --text-headline-lg--letter-spacing: -0.01em;
+  --text-headline-lg--font-weight: 600;
+  --text-display-lg: 48px;
+  --text-display-lg--line-height: 56px;
+  --text-display-lg--letter-spacing: -0.02em;
+  --text-display-lg--font-weight: 700;
+
+  /* ---- Spacing tokens ---- */
+  --spacing-gutter: 24px;
+  --spacing-card-gap: 20px;
+  --spacing-container-padding-mobile: 16px;
+  --spacing-container-padding-desktop: 32px;
 }
 
+/* Dark mode is always on for this app */
 html,
 body,
 #root {
   height: 100%;
 }
 
+html {
+  color-scheme: dark;
+}
+
 body {
   margin: 0;
-  font-family: system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  background-color: #f1f5f9;
-  color: #0f172a;
+  font-family: "Inter", system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background-color: #0b1326;
+  color: #dae2fd;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ---- Material Symbols ---- */
+.material-symbols-outlined {
+  font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+  font-size: inherit;
+  line-height: 1;
+  user-select: none;
+}
+.material-symbols-outlined.filled {
+  font-variation-settings: "FILL" 1, "wght" 400, "GRAD" 0, "opsz" 24;
+}
+
+/* ---- Reusable surfaces ---- */
+.clean-card {
+  background-color: #171f33;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.ai-gradient-text {
+  background: linear-gradient(120deg, #8fb3ff 0%, #c2a4ff 48%, #2fe6a0 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Canlı vurgu gradyanı (CTA / rozet / vurgu yüzeyleri) */
+.vibrant-gradient {
+  background: linear-gradient(120deg, #4d8eff 0%, #8a5cff 50%, #2fe6a0 100%);
+}
+
+/* ---- Custom scrollbar ---- */
+.custom-scrollbar::-webkit-scrollbar,
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track,
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb,
+*::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover,
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+/* ---- Autofill fix for dark inputs ---- */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #dae2fd;
+  -webkit-box-shadow: 0 0 0px 1000px #171f33 inset;
+  caret-color: #dae2fd;
 }

@@ -2,7 +2,7 @@ import { useRef, useState, type FormEvent } from 'react';
 import type { IScannerControls } from '@zxing/browser';
 import { nutritionApi } from '../api';
 import { getErrorMessage } from '../api/client';
-import { Button, Card, ErrorAlert, Input } from './ui';
+import { Button, Card, ErrorAlert, Icon, Input } from './ui';
 import type { BarcodeLookupResult, Food } from '../types';
 
 export default function BarcodeAdd({ onFoodCreated }: { onFoodCreated: (food: Food) => void }) {
@@ -91,14 +91,18 @@ export default function BarcodeAdd({ onFoodCreated }: { onFoodCreated: (food: Fo
 
   return (
     <Card className="mb-6">
-      <h3 className="mb-3 font-semibold text-slate-800">📷 Barkod ile Ekle</h3>
+      <h3 className="mb-3 flex items-center gap-2 font-semibold text-on-surface">
+        <Icon name="barcode_scanner" className="text-primary" /> Barkod ile Ekle
+      </h3>
       <form onSubmit={onSubmit} className="flex flex-wrap items-end gap-3">
         <div className="min-w-[200px] flex-1">
           <Input value={code} onChange={(e) => setCode(e.target.value)} placeholder="Barkod numarası (örn. 3017620422003)" />
         </div>
         <Button type="submit" variant="secondary" disabled={loading}>{loading ? 'Aranıyor…' : 'Ara'}</Button>
         {!scanning ? (
-          <Button type="button" variant="secondary" onClick={startScan}>📷 Kamera</Button>
+          <Button type="button" variant="secondary" onClick={startScan} className="flex items-center gap-1.5">
+            <Icon name="photo_camera" className="text-base" /> Kamera
+          </Button>
         ) : (
           <Button type="button" variant="ghost" onClick={stopScan}>Durdur</Button>
         )}
@@ -111,12 +115,12 @@ export default function BarcodeAdd({ onFoodCreated }: { onFoodCreated: (food: Fo
       <div className="mt-3"><ErrorAlert message={error} /></div>
 
       {result && (
-        <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-200 bg-slate-50 p-3">
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/10 bg-surface-container-high p-3">
           <div>
-            <div className="font-medium text-slate-700">
-              {result.name}{result.brand ? <span className="text-slate-400"> · {result.brand}</span> : null}
+            <div className="font-medium text-on-surface">
+              {result.name}{result.brand ? <span className="text-on-surface-variant"> · {result.brand}</span> : null}
             </div>
-            <div className="text-xs text-slate-500">
+            <div className="text-xs text-on-surface-variant">
               100g: {result.caloriesPer100g} kcal · P{result.proteinPer100g} K{result.carbsPer100g} Y{result.fatPer100g}
             </div>
           </div>

@@ -10,6 +10,7 @@ public interface INutritionService
     Task DeleteLogAsync(int userId, int logId, CancellationToken ct = default);
     Task<DailyNutritionSummaryDto> GetDailySummaryAsync(int userId, DateTime date, CancellationToken ct = default);
     Task<BarcodeLookupResult> LookupBarcodeAsync(string barcode, CancellationToken ct = default);
-    Task<List<FatSecretFoodResult>> SearchFoodsAsync(string query, CancellationToken ct = default);
-    Task<FoodDto> ImportFatSecretFoodAsync(string fatSecretFoodId, CancellationToken ct = default);
+
+    /// <summary>AI (LLM) ile besin adından 100g başına tahmini kalori/makro önerileri üretir.</summary>
+    Task<List<AiFoodSuggestion>> SearchFoodsAsync(string query, CancellationToken ct = default);
 }

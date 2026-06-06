@@ -1,3 +1,4 @@
+using System.Text.Json;
 using FitMetrics.Application.Common.Exceptions;
 using FitMetrics.Application.Common.Interfaces;
 using FitMetrics.Application.DTOs.Nutrition;
@@ -11,17 +12,19 @@ namespace FitMetrics.Application.Services;
 
 public class NutritionService : INutritionService
 {
+    private static readonly JsonSerializerOptions JsonOpts = new() { PropertyNameCaseInsensitive = true };
+
     private readonly IApplicationDbContext _db;
     private readonly IMapper _mapper;
     private readonly IFoodLookupClient _foodLookup;
-    private readonly IFatSecretClient _fatSecret;
+    private readonly IClaudeClient _claude;
 
-    public NutritionService(IApplicationDbContext db, IMapper mapper, IFoodLookupClient foodLookup, IFatSecretClient fatSecret)
+    public NutritionService(IApplicationDbContext db, IMapper mapper, IFoodLookupClient foodLookup, IClaudeClient claude)
     {
         _db = db;
         _mapper = mapper;
         _foodLookup = foodLookup;
-        _fatSecret = fatSecret;
+        _claude = claude;
     }
 
     public async Task<List<FoodDto>> GetFoodsAsync(string? search, CancellationToken ct = default)
@@ -131,29 +134,77 @@ public class NutritionService : INutritionService
         return result;
     }
 
-    public Task<List<FatSecretFoodResult>> SearchFoodsAsync(string query, CancellationToken ct = default)
-        => _fatSecret.SearchAsync(query.Trim(), ct);
-
-    public async Task<FoodDto> ImportFatSecretFoodAsync(string fatSecretFoodId, CancellationToken ct = default)
+    public async Task<List<AiFoodSuggestion>> SearchFoodsAsync(string query, CancellationToken ct = default)
     {
-        var imported = await _fatSecret.GetFoodAsync(fatSecretFoodId, ct)
-                       ?? throw new NotFoundException("FatSecret besini", fatSecretFoodId);
+        var q = query.Trim();
+        if (string.IsNullOrWhiteSpace(q)) return [];
+        if (!_claude.IsConfigured)
+            throw new ExternalServiceException("Besin araması için bir AI sağlayıcı (Ollama/Anthropic) gerekli.");
 
-        var food = new Food
+        const string system =
+            "Sen bir beslenme veritabanısın. Kullanıcının aramasıyla eşleşen, BİRBİRİNDEN FARKLI ve GERÇEK yiyecekleri döndür. " +
+            "Aynı yiyeceğin uydurma çeşitlerini/varyantlarını TEKRARLAMA; yalnızca yaygın, bilinen besinler ver. " +
+            "Her sonuç için 100 GRAM başına gerçekçi ortalama değer ver: kalori (kcal), protein (g), karbonhidrat (g), yağ (g). " +
+            "Değerler USDA/TÜİK benzeri ortalamalara dayansın; tahminî olduklarını unutma. Kısa Türkçe ad ve çok kısa açıklama yaz. " +
+            "Marka yoksa boş bırak. En fazla 5 sonuç. Yalnızca istenen JSON şemasına uygun yanıt ver.";
+
+        var userPrompt = $"Arama terimi: \"{q}\". Bu terime uyan en fazla 5 FARKLI gerçek yiyeceği 100g değerleriyle listele.";
+
+        var schema = new
         {
-            Name = imported.Name.Trim(),
-            Brand = imported.Brand?.Trim(),
-            Category = "FatSecret",
-            CaloriesPer100g = imported.CaloriesPer100g,
-            ProteinPer100g = imported.ProteinPer100g,
-            CarbsPer100g = imported.CarbsPer100g,
-            FatPer100g = imported.FatPer100g
+            type = "object",
+            additionalProperties = false,
+            required = new[] { "results" },
+            properties = new
+            {
+                results = new
+                {
+                    type = "array",
+                    items = new
+                    {
+                        type = "object",
+                        additionalProperties = false,
+                        required = new[] { "name", "description", "caloriesPer100g", "proteinPer100g", "carbsPer100g", "fatPer100g" },
+                        properties = new
+                        {
+                            name = new { type = "string" },
+                            brand = new { type = "string" },
+                            description = new { type = "string" },
+                            caloriesPer100g = new { type = "number" },
+                            proteinPer100g = new { type = "number" },
+                            carbsPer100g = new { type = "number" },
+                            fatPer100g = new { type = "number" }
+                        }
+                    }
+                }
+            }
         };
 
-        _db.Foods.Add(food);
-        await _db.SaveChangesAsync(ct);
-        return _mapper.Map<FoodDto>(food);
+        var json = await _claude.CompleteJsonAsync(system, userPrompt, schema,
+            new ClaudeOptions(MaxTokens: 1000, Thinking: false), ct);
+
+        AiSearchWrapper? parsed;
+        try { parsed = JsonSerializer.Deserialize<AiSearchWrapper>(json, JsonOpts); }
+        catch (JsonException) { throw new ExternalServiceException("AI besin yanıtı çözümlenemedi."); }
+
+        return (parsed?.Results ?? [])
+            .Where(r => !string.IsNullOrWhiteSpace(r.Name))
+            .Select(r => new AiFoodSuggestion(
+                r.Name.Trim(),
+                string.IsNullOrWhiteSpace(r.Brand) ? null : r.Brand!.Trim(),
+                string.IsNullOrWhiteSpace(r.Description) ? r.Name.Trim() : r.Description!.Trim(),
+                Math.Max(0, Math.Round(r.CaloriesPer100g, 1)),
+                Math.Max(0, Math.Round(r.ProteinPer100g, 1)),
+                Math.Max(0, Math.Round(r.CarbsPer100g, 1)),
+                Math.Max(0, Math.Round(r.FatPer100g, 1))))
+            .Take(8)
+            .ToList();
     }
+
+    private sealed record AiSearchWrapper(List<AiSearchItem>? Results);
+    private sealed record AiSearchItem(
+        string Name, string? Brand, string? Description,
+        double CaloriesPer100g, double ProteinPer100g, double CarbsPer100g, double FatPer100g);
 
     /// <summary>Bir öğün kaydını, besinin 100g değerlerini tüketilen gram miktarına ölçekleyerek DTO'ya çevirir.</summary>
     private static NutritionLogDto ToDto(NutritionLog log, Food food)

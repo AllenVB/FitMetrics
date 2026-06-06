@@ -1,7 +1,7 @@
 import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react';
 import { aiApi } from '../api';
 import { getErrorMessage } from '../api/client';
-import { Button, Card, ErrorAlert, Field, Input, PageHeader, Spinner } from '../components/ui';
+import { Button, Card, ErrorAlert, Field, Icon, Input, PageHeader, Spinner } from '../components/ui';
 import type { CoachResponse, MealPhotoResponse, MealPlanResponse } from '../types';
 
 export default function AiCoach() {
@@ -15,19 +15,21 @@ export default function AiCoach() {
 
   return (
     <div>
-      <PageHeader title="🤖 AI Koç" subtitle="Claude destekli öğün planı, kişisel koçluk ve fotoğraftan analiz" />
+      <PageHeader title="AI Koç" subtitle="Yapay zeka destekli öğün planı, kişisel koçluk ve fotoğraftan analiz" />
 
       {!enabled ? (
-        <Card className="border-l-4 border-amber-400">
-          <h3 className="mb-1 font-semibold text-slate-800">⚠️ AI özellikleri şu an kapalı</h3>
-          <p className="text-sm text-slate-600">
-            Bu özellikler Claude API gerektirir. Sunucuda <code className="rounded bg-slate-100 px-1">ANTHROPIC_API_KEY</code> ortam
-            değişkeni (veya <code className="rounded bg-slate-100 px-1">appsettings.json → Anthropic:ApiKey</code>) tanımlandığında otomatik
-            etkinleşir. Uygulamanın geri kalanı anahtar olmadan da tam çalışır.
+        <Card className="border-l-4 border-l-amber-400">
+          <h3 className="mb-1 flex items-center gap-2 font-semibold text-on-surface">
+            <Icon name="warning" className="text-amber-400" /> AI özellikleri şu an kapalı
+          </h3>
+          <p className="text-body-sm text-on-surface-variant">
+            Bu özellikler bir AI sağlayıcı gerektirir. Sunucuda Ollama çalışıyorsa veya{' '}
+            <code className="rounded bg-white/10 px-1">Anthropic:ApiKey</code> tanımlıysa otomatik etkinleşir.
+            Uygulamanın geri kalanı AI olmadan da tam çalışır.
           </p>
         </Card>
       ) : (
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div className="grid gap-card-gap lg:grid-cols-2">
           <MealPlanCard />
           <CoachCard />
           <PhotoCard />
@@ -60,7 +62,9 @@ function MealPlanCard() {
 
   return (
     <Card>
-      <h3 className="mb-3 font-semibold text-slate-800">🍳 Akıllı Öğün Planı</h3>
+      <h3 className="mb-4 flex items-center gap-2 text-title-md font-bold text-on-surface">
+        <Icon name="skillet" className="text-primary" /> Akıllı Öğün Planı
+      </h3>
       <form onSubmit={submit} className="space-y-3">
         <Field label="Ne istiyorsun?">
           <Input value={prompt} onChange={(e) => setPrompt(e.target.value)} placeholder="örn. 2500 kalorilik kas kazanma programı" required />
@@ -73,17 +77,17 @@ function MealPlanCard() {
       <div className="mt-3"><ErrorAlert message={error} /></div>
       {plan && (
         <div className="mt-4 space-y-3">
-          <p className="text-sm text-slate-600">{plan.summary}</p>
-          <div className="text-xs font-medium text-slate-500">Toplam ~{plan.totalCalories} kcal · {plan.totalProtein} g protein</div>
+          <p className="text-body-sm text-on-surface-variant">{plan.summary}</p>
+          <div className="text-xs font-medium text-primary">Toplam ~{plan.totalCalories} kcal · {plan.totalProtein} g protein</div>
           {plan.meals.map((meal, i) => (
-            <div key={i} className="rounded-lg border border-slate-200 p-3">
-              <div className="mb-1 flex justify-between text-sm font-semibold text-slate-700">
+            <div key={i} className="rounded-xl border border-white/10 bg-surface-container-high p-3">
+              <div className="mb-1 flex justify-between text-body-sm font-semibold text-on-surface">
                 <span>{meal.mealType}</span>
                 <span>{meal.calories} kcal</span>
               </div>
-              <ul className="space-y-0.5 text-sm text-slate-600">
+              <ul className="space-y-0.5 text-body-sm text-on-surface-variant">
                 {meal.foods.map((f, j) => (
-                  <li key={j}>• {f.name} — {f.amount} <span className="text-slate-400">({f.calories} kcal, {f.protein}g P)</span></li>
+                  <li key={j}>• {f.name} — {f.amount} <span className="text-on-surface-variant/60">({f.calories} kcal, {f.protein}g P)</span></li>
                 ))}
               </ul>
             </div>
@@ -113,17 +117,19 @@ function CoachCard() {
 
   return (
     <Card>
-      <h3 className="mb-3 font-semibold text-slate-800">💬 Kişisel Koçluk</h3>
-      <p className="mb-3 text-sm text-slate-500">Verilerinden çıkan analizleri sıcak, uygulanabilir bir koçluk mesajına dönüştürür.</p>
+      <h3 className="mb-3 flex items-center gap-2 text-title-md font-bold text-on-surface">
+        <Icon name="psychology" className="text-tertiary" /> Kişisel Koçluk
+      </h3>
+      <p className="mb-4 text-body-sm text-on-surface-variant">Verilerinden çıkan analizleri sıcak, uygulanabilir bir koçluk mesajına dönüştürür.</p>
       <Button onClick={run} disabled={loading}>{loading ? 'Hazırlanıyor…' : 'Koçluk al'}</Button>
       <div className="mt-3"><ErrorAlert message={error} /></div>
       {coach && (
         <div className="mt-4 space-y-3">
-          <p className="whitespace-pre-line text-sm leading-relaxed text-slate-700">{coach.message}</p>
+          <p className="whitespace-pre-line text-body-sm leading-relaxed text-on-surface">{coach.message}</p>
           {coach.focusAreas.length > 0 && (
             <div className="flex flex-wrap gap-2">
               {coach.focusAreas.map((f, i) => (
-                <span key={i} className="rounded-full bg-brand-50 px-3 py-1 text-xs font-medium text-brand-700">{f}</span>
+                <span key={i} className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">{f}</span>
               ))}
             </div>
           )}
@@ -163,27 +169,34 @@ function PhotoCard() {
 
   return (
     <Card className="lg:col-span-2">
-      <h3 className="mb-3 font-semibold text-slate-800">📷 Fotoğraftan Yemek Analizi</h3>
-      <p className="mb-3 text-sm text-slate-500">Bir yemek fotoğrafı yükle; Claude görüntüyü analiz edip kalori/makro tahmini yapsın.</p>
-      <input type="file" accept="image/*" onChange={onFile} className="block text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-brand-600 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-brand-700" />
+      <h3 className="mb-3 flex items-center gap-2 text-title-md font-bold text-on-surface">
+        <Icon name="photo_camera" className="text-secondary" /> Fotoğraftan Yemek Analizi
+      </h3>
+      <p className="mb-4 text-body-sm text-on-surface-variant">Bir yemek fotoğrafı yükle; AI görüntüyü analiz edip kalori/makro tahmini yapsın.</p>
+      <input
+        type="file"
+        accept="image/*"
+        onChange={onFile}
+        className="block text-body-sm text-on-surface-variant file:mr-3 file:rounded-lg file:border-0 file:bg-primary file:px-4 file:py-2 file:text-sm file:font-semibold file:text-on-primary hover:file:brightness-110"
+      />
       <div className="mt-3"><ErrorAlert message={error} /></div>
 
       <div className="mt-4 grid gap-4 sm:grid-cols-2">
-        {preview && <img src={preview} alt="Önizleme" className="max-h-56 rounded-lg border border-slate-200 object-cover" />}
+        {preview && <img src={preview} alt="Önizleme" className="max-h-56 rounded-xl border border-white/10 object-cover" />}
         <div>
           {loading && <Spinner label="Fotoğraf analiz ediliyor…" />}
           {result && (
-            <div className="space-y-2">
-              <p className="text-sm text-slate-700">{result.description}</p>
+            <div className="space-y-3">
+              <p className="text-body-sm text-on-surface">{result.description}</p>
               <div className="grid grid-cols-4 gap-2 text-center">
                 <Macro label="kcal" value={result.estimatedCalories} />
                 <Macro label="Protein" value={`${result.estimatedProtein}g`} />
                 <Macro label="Karb" value={`${result.estimatedCarbs}g`} />
                 <Macro label="Yağ" value={`${result.estimatedFat}g`} />
               </div>
-              <ul className="space-y-0.5 text-sm text-slate-600">
+              <ul className="space-y-0.5 text-body-sm text-on-surface-variant">
                 {result.foods.map((f, i) => (
-                  <li key={i}>• {f.name} — {f.portion} <span className="text-slate-400">({f.calories} kcal)</span></li>
+                  <li key={i}>• {f.name} — {f.portion} <span className="text-on-surface-variant/60">({f.calories} kcal)</span></li>
                 ))}
               </ul>
             </div>
@@ -196,9 +209,9 @@ function PhotoCard() {
 
 function Macro({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="rounded-lg bg-slate-50 py-2">
-      <div className="text-sm font-bold text-slate-800">{value}</div>
-      <div className="text-xs text-slate-400">{label}</div>
+    <div className="rounded-xl bg-surface-container-high py-2.5">
+      <div className="text-body-sm font-bold text-on-surface">{value}</div>
+      <div className="text-xs text-on-surface-variant">{label}</div>
     </div>
   );
 }

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { dietitianApi } from '../api';
 import { getErrorMessage } from '../api/client';
 import { useAuth } from '../context/AuthContext';
-import { Button, Card, EmptyState, ErrorAlert, Field, Input, PageHeader, Spinner, StatCard } from '../components/ui';
+import { Button, Card, EmptyState, ErrorAlert, Field, Icon, Input, PageHeader, Spinner, StatCard } from '../components/ui';
 import { formatDate, goalLabels } from '../lib/labels';
 import type { ClientSummary, Dashboard, InsightsResponse, InsightSeverity } from '../types';
 
@@ -30,10 +30,10 @@ function EnrollView() {
 
   return (
     <div>
-      <PageHeader title="🧑‍⚕️ Diyetisyen Paneli" subtitle="Danışanlarını yönet ve ilerlemelerini takip et" />
+      <PageHeader title="Diyetisyen Paneli" subtitle="Danışanlarını yönet ve ilerlemelerini takip et" />
       <Card>
-        <h3 className="mb-2 font-semibold text-slate-800">Diyetisyen moduna geç</h3>
-        <p className="mb-4 text-sm text-slate-600">
+        <h3 className="mb-2 text-title-md font-bold text-on-surface">Diyetisyen moduna geç</h3>
+        <p className="mb-4 text-body-sm text-on-surface-variant">
           Bu modda danışanlarını e-posta ile ekleyip onların panel verilerini ve AI analizlerini (yalnızca okuma)
           görüntüleyebilirsin. İstediğin zaman danışan bağını kaldırabilirsin.
         </p>
@@ -89,7 +89,7 @@ function Panel() {
 
   return (
     <div>
-      <PageHeader title="🧑‍⚕️ Diyetisyen Paneli" subtitle="Danışanlarını yönet ve ilerlemelerini takip et" />
+      <PageHeader title="Diyetisyen Paneli" subtitle="Danışanlarını yönet ve ilerlemelerini takip et" />
 
       <Card className="mb-6">
         <form onSubmit={addClient} className="flex flex-wrap items-end gap-3">
@@ -112,9 +112,9 @@ function Panel() {
         <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
           {clients.map((c) => (
             <Card key={c.id}>
-              <div className="font-semibold text-slate-800">{c.fullName}</div>
-              <div className="text-xs text-slate-500">{c.email}</div>
-              <div className="mt-2 text-sm text-slate-600">{goalLabels[c.goalType]} · {c.currentWeightKg} kg · BMI {c.bmi}</div>
+              <div className="font-semibold text-on-surface">{c.fullName}</div>
+              <div className="text-xs text-on-surface-variant">{c.email}</div>
+              <div className="mt-2 text-body-sm text-on-surface-variant">{goalLabels[c.goalType]} · {c.currentWeightKg} kg · BMI {c.bmi}</div>
               <div className="mt-3 flex gap-2">
                 <Button variant="secondary" onClick={() => setSelected(c)}>Görüntüle</Button>
                 <Button variant="ghost" onClick={() => remove(c.id)}>Kaldır</Button>
@@ -130,9 +130,9 @@ function Panel() {
 }
 
 const severityColor: Record<InsightSeverity, string> = {
-  Positive: 'border-emerald-400',
-  Info: 'border-blue-400',
-  Warning: 'border-amber-400',
+  Positive: 'border-l-tertiary',
+  Info: 'border-l-blue-400',
+  Warning: 'border-l-amber-400',
 };
 
 function ClientDetail({ client, onClose }: { client: ClientSummary; onClose: () => void }) {
@@ -153,7 +153,7 @@ function ClientDetail({ client, onClose }: { client: ClientSummary; onClose: () 
   return (
     <Card className="mt-6">
       <div className="mb-4 flex items-center justify-between">
-        <h3 className="font-semibold text-slate-800">{client.fullName} — detay</h3>
+        <h3 className="text-title-md font-bold text-on-surface">{client.fullName} — detay</h3>
         <Button variant="ghost" onClick={onClose}>Kapat</Button>
       </div>
 
@@ -164,19 +164,19 @@ function ClientDetail({ client, onClose }: { client: ClientSummary; onClose: () 
       ) : dash ? (
         <>
           <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
-            <StatCard icon="🔥" label="Bugün kalori" value={Math.round(dash.today.totalCalories)} sub={`/ ${dash.today.calorieGoal} kcal`} accent="amber" />
-            <StatCard icon="🥩" label="Bugün protein" value={`${Math.round(dash.today.totalProtein)} g`} sub={`/ ${dash.today.proteinGoal} g`} accent="brand" />
-            <StatCard icon="💪" label="Bu hafta antrenman" value={dash.workoutsThisWeek} accent="rose" />
-            <StatCard icon="⚖️" label="Kilo / BMI" value={`${dash.currentWeightKg ?? '-'} kg`} sub={`BMI ${dash.bmi}`} accent="violet" />
+            <StatCard icon={<Icon name="local_fire_department" />} label="Bugün kalori" value={Math.round(dash.today.totalCalories)} sub={`/ ${dash.today.calorieGoal} kcal`} accent="amber" />
+            <StatCard icon={<Icon name="restaurant" />} label="Bugün protein" value={`${Math.round(dash.today.totalProtein)} g`} sub={`/ ${dash.today.proteinGoal} g`} accent="brand" />
+            <StatCard icon={<Icon name="fitness_center" />} label="Bu hafta antrenman" value={dash.workoutsThisWeek} accent="rose" />
+            <StatCard icon={<Icon name="monitor_weight" />} label="Kilo / BMI" value={`${dash.currentWeightKg ?? '-'} kg`} sub={`BMI ${dash.bmi}`} accent="violet" />
           </div>
 
           {insights && insights.insights.length > 0 && (
             <div className="space-y-2">
-              <h4 className="text-sm font-semibold text-slate-600">AI Analizleri ({formatDate(insights.generatedAt)})</h4>
+              <h4 className="text-body-sm font-semibold text-on-surface-variant">AI Analizleri ({formatDate(insights.generatedAt)})</h4>
               {insights.insights.map((ins, i) => (
-                <div key={i} className={`rounded-lg border-l-4 ${severityColor[ins.severity]} bg-slate-50 p-3`}>
-                  <div className="text-sm font-semibold text-slate-700">{ins.title}</div>
-                  <div className="text-sm text-slate-600">{ins.message}</div>
+                <div key={i} className={`rounded-lg border-l-4 ${severityColor[ins.severity]} bg-surface-container-high p-3`}>
+                  <div className="text-body-sm font-semibold text-on-surface">{ins.title}</div>
+                  <div className="text-body-sm text-on-surface-variant">{ins.message}</div>
                 </div>
               ))}
             </div>

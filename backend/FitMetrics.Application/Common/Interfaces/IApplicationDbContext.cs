@@ -17,6 +17,8 @@ public interface IApplicationDbContext
     DbSet<WeightEntry> WeightEntries { get; }
     DbSet<DietitianClient> DietitianClients { get; }
     DbSet<KnowledgeEntry> KnowledgeEntries { get; }
+    DbSet<WaterLog> WaterLogs { get; }
+    DbSet<ChatMessage> ChatMessages { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

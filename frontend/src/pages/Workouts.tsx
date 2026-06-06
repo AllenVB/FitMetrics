@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { workoutApi } from '../api';
 import { getErrorMessage } from '../api/client';
-import { Button, Card, EmptyState, ErrorAlert, Field, Input, PageHeader, Select, Spinner } from '../components/ui';
+import { Button, Card, EmptyState, ErrorAlert, Field, Icon, Input, PageHeader, Select, Spinner } from '../components/ui';
 import { categoryLabels, formatDate, muscleLabels } from '../lib/labels';
 import type { Exercise, WorkoutLog } from '../types';
 
@@ -81,7 +81,7 @@ export default function Workouts() {
 
   return (
     <div>
-      <PageHeader title="💪 Antrenman" subtitle="Egzersizlerini kaydet, hacmini ve yakılan kaloriyi izle" />
+      <PageHeader title="Antrenman" subtitle="Egzersizlerini kaydet, hacmini ve yakılan kaloriyi izle" />
 
       <div className="mb-4"><ErrorAlert message={error} /></div>
 
@@ -107,7 +107,7 @@ export default function Workouts() {
           )}
           <Button type="submit" disabled={adding || exerciseId === ''}>{adding ? 'Ekleniyor…' : '+ Ekle'}</Button>
         </form>
-        <p className="mt-2 text-xs text-slate-400">
+        <p className="mt-2 text-xs text-on-surface-variant/70">
           {isCardio ? 'Kardiyo için süre giriniz.' : 'Kuvvet için set/tekrar/ağırlık giriniz. Yakılan kalori otomatik hesaplanır.'}
         </p>
       </Card>
@@ -120,26 +120,26 @@ export default function Workouts() {
         <div className="space-y-4">
           {days.map((day) => (
             <Card key={day}>
-              <h3 className="mb-3 font-semibold text-slate-800">{formatDate(day)}</h3>
-              <ul className="divide-y divide-slate-100">
+              <h3 className="mb-3 font-semibold text-on-surface">{formatDate(day)}</h3>
+              <ul className="divide-y divide-white/5">
                 {grouped[day].map((log) => (
                   <li key={log.id} className="flex items-center justify-between py-2.5">
                     <div>
-                      <div className="font-medium text-slate-700">
+                      <div className="font-medium text-on-surface">
                         {log.exerciseName}
-                        <span className="ml-2 rounded bg-slate-100 px-1.5 py-0.5 text-xs text-slate-500">
+                        <span className="ml-2 rounded bg-white/5 px-1.5 py-0.5 text-xs text-on-surface-variant">
                           {categoryLabels[log.category]} • {muscleLabels[log.muscleGroup]}
                         </span>
                       </div>
-                      <div className="text-xs text-slate-400">
+                      <div className="text-xs text-on-surface-variant">
                         {log.durationMinutes ? `${log.durationMinutes} dk` : ''}
                         {log.sets ? `${log.sets} set × ${log.reps ?? '-'} tekrar` : ''}
                         {log.weightKg ? ` @ ${log.weightKg} kg` : ''}
                         {' • '}{Math.round(log.caloriesBurned)} kcal
                       </div>
                     </div>
-                    <button onClick={() => onDelete(log.id)} className="rounded-md px-2 py-1 text-sm text-rose-500 hover:bg-rose-50">
-                      Sil
+                    <button onClick={() => onDelete(log.id)} className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-on-surface-variant transition-colors hover:bg-error/10 hover:text-error" title="Sil">
+                      <Icon name="delete" className="text-lg" />
                     </button>
                   </li>
                 ))}

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { nutritionApi } from '../api';
 import { getErrorMessage } from '../api/client';
-import { Button, Card, EmptyState, ErrorAlert, Field, Input, PageHeader, Select, Spinner } from '../components/ui';
+import { Button, Card, EmptyState, ErrorAlert, Field, Icon, Input, PageHeader, Select, Spinner } from '../components/ui';
 import BarcodeAdd from '../components/BarcodeAdd';
 import FoodSearch from '../components/FoodSearch';
 import { mealLabels, mealOrder } from '../lib/labels';
@@ -11,6 +11,13 @@ function todayStr() {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
+
+const mealIcons: Record<MealType, { icon: string; chip: string }> = {
+  Breakfast: { icon: 'sunny', chip: 'bg-amber-500/10 text-amber-400' },
+  Lunch: { icon: 'restaurant', chip: 'bg-tertiary/10 text-tertiary' },
+  Dinner: { icon: 'dinner_dining', chip: 'bg-secondary/10 text-secondary' },
+  Snack: { icon: 'cookie', chip: 'bg-primary/10 text-primary' },
+};
 
 export default function Nutrition() {
   const [date, setDate] = useState(todayStr());
@@ -84,7 +91,7 @@ export default function Nutrition() {
   return (
     <div>
       <PageHeader
-        title="🍽️ Beslenme"
+        title="Beslenme"
         subtitle="Öğünlerini kaydet, kalori ve makrolarını takip et"
         action={<Input type="date" value={date} max={todayStr()} onChange={(e) => setDate(e.target.value)} className="w-auto" />}
       />
@@ -123,21 +130,21 @@ export default function Nutrition() {
         <>
           {/* Günlük toplam */}
           <Card className="mb-6">
-            <div className="mb-2 flex items-end justify-between">
+            <div className="mb-3 flex flex-wrap items-end justify-between gap-4">
               <div>
-                <div className="text-sm text-slate-500">Toplam Kalori</div>
-                <div className="text-2xl font-bold text-slate-800">
-                  {Math.round(summary.totalCalories)} <span className="text-base font-normal text-slate-400">/ {summary.calorieGoal} kcal</span>
+                <div className="font-label-caps text-label-caps uppercase text-on-surface-variant">Toplam Kalori</div>
+                <div className="mt-1 text-2xl font-bold text-on-surface">
+                  {Math.round(summary.totalCalories)} <span className="text-base font-normal text-on-surface-variant">/ {summary.calorieGoal} kcal</span>
                 </div>
               </div>
-              <div className="flex gap-4 text-sm">
-                <span className="text-brand-600">P {Math.round(summary.totalProtein)}g</span>
-                <span className="text-blue-600">K {Math.round(summary.totalCarbs)}g</span>
-                <span className="text-amber-600">Y {Math.round(summary.totalFat)}g</span>
+              <div className="flex gap-2 text-xs font-semibold">
+                <span className="rounded-lg bg-tertiary/10 px-3 py-1.5 text-tertiary">P {Math.round(summary.totalProtein)}g</span>
+                <span className="rounded-lg bg-primary/10 px-3 py-1.5 text-primary">K {Math.round(summary.totalCarbs)}g</span>
+                <span className="rounded-lg bg-amber-500/10 px-3 py-1.5 text-amber-400">Y {Math.round(summary.totalFat)}g</span>
               </div>
             </div>
-            <div className="h-2.5 w-full overflow-hidden rounded-full bg-slate-100">
-              <div className="h-full rounded-full bg-brand-500 transition-all" style={{ width: `${caloriePct}%` }} />
+            <div className="h-2.5 w-full overflow-hidden rounded-full bg-white/5">
+              <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${caloriePct}%` }} />
             </div>
           </Card>
 
@@ -146,26 +153,32 @@ export default function Nutrition() {
             {mealOrder.map((meal) => {
               const group = summary.meals.find((m) => m.mealType === meal);
               if (!group) return null;
+              const mi = mealIcons[meal];
               return (
                 <Card key={meal}>
                   <div className="mb-3 flex items-center justify-between">
-                    <h3 className="font-semibold text-slate-800">{mealLabels[meal]}</h3>
-                    <span className="text-sm text-slate-500">{Math.round(group.calories)} kcal</span>
+                    <div className="flex items-center gap-3">
+                      <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${mi.chip}`}>
+                        <Icon name={mi.icon} className="text-xl" />
+                      </div>
+                      <h3 className="font-semibold text-on-surface">{mealLabels[meal]}</h3>
+                    </div>
+                    <span className="text-body-sm font-bold text-on-surface">{Math.round(group.calories)} kcal</span>
                   </div>
                   {group.items.length === 0 ? (
                     <EmptyState message="Bu öğüne henüz besin eklenmedi." />
                   ) : (
-                    <ul className="divide-y divide-slate-100">
+                    <ul className="divide-y divide-white/5">
                       {group.items.map((item) => (
                         <li key={item.id} className="flex items-center justify-between py-2.5">
-                          <div>
-                            <div className="font-medium text-slate-700">{item.foodName}</div>
-                            <div className="text-xs text-slate-400">
+                          <div className="min-w-0">
+                            <div className="font-medium text-on-surface">{item.foodName}</div>
+                            <div className="text-xs text-on-surface-variant">
                               {item.amountGrams} g • {Math.round(item.calories)} kcal • P{Math.round(item.protein)} K{Math.round(item.carbs)} Y{Math.round(item.fat)}
                             </div>
                           </div>
-                          <button onClick={() => onDelete(item.id)} className="rounded-md px-2 py-1 text-sm text-rose-500 hover:bg-rose-50">
-                            Sil
+                          <button onClick={() => onDelete(item.id)} className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-on-surface-variant transition-colors hover:bg-error/10 hover:text-error" title="Sil">
+                            <Icon name="delete" className="text-lg" />
                           </button>
                         </li>
                       ))}
