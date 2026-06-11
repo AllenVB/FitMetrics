@@ -6,6 +6,7 @@ const navItems = [
   { to: '/', label: 'Panel', icon: 'dashboard', end: true },
   { to: '/nutrition', label: 'Beslenme', icon: 'restaurant' },
   { to: '/workouts', label: 'Antrenman', icon: 'fitness_center' },
+  { to: '/workout-planner', label: 'Program', icon: 'calendar_month' },
   { to: '/progress', label: 'İlerleme', icon: 'trending_up' },
   { to: '/insights', label: 'AI Insights', icon: 'analytics' },
   { to: '/ai-coach', label: 'AI Koç', icon: 'smart_toy' },
@@ -21,7 +22,7 @@ export default function Layout() {
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate('/');
   };
 
   const initial = user?.fullName?.charAt(0).toUpperCase() ?? '?';

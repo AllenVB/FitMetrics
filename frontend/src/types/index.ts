@@ -258,6 +258,40 @@ export interface ChatMessage {
   content: string;
 }
 
+// ---- Antrenman Programı ----
+
+export interface WorkoutPlanSummary {
+  id: number;
+  name: string;
+  createdAt: string;
+  totalExercises: number;
+}
+
+export interface WorkoutPlanExerciseItem {
+  id: number;
+  exerciseId: number;
+  exerciseName: string;
+  muscleGroup: string;
+  category: string;
+  sets?: number | null;
+  reps?: number | null;
+  durationMinutes?: number | null;
+  sortOrder: number;
+}
+
+export interface WorkoutPlanDay {
+  id: number;
+  dayIndex: number;
+  exercises: WorkoutPlanExerciseItem[];
+}
+
+export interface WorkoutPlanDetail {
+  id: number;
+  name: string;
+  createdAt: string;
+  days: WorkoutPlanDay[];
+}
+
 export interface ChatResponse {
   reply: string;
 }

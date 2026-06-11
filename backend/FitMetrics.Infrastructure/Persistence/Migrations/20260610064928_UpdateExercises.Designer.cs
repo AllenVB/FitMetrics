@@ -4,6 +4,7 @@ using FitMetrics.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FitMetrics.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260610064928_UpdateExercises")]
+    partial class UpdateExercises
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -804,104 +807,6 @@ namespace FitMetrics.Infrastructure.Persistence.Migrations
                     b.ToTable("WorkoutLogs");
                 });
 
-            modelBuilder.Entity("FitMetrics.Domain.Entities.WorkoutPlan", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("WorkoutPlans");
-                });
-
-            modelBuilder.Entity("FitMetrics.Domain.Entities.WorkoutPlanDay", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("DayIndex")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("WorkoutPlanId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("WorkoutPlanId", "DayIndex")
-                        .IsUnique();
-
-                    b.ToTable("WorkoutPlanDays");
-                });
-
-            modelBuilder.Entity("FitMetrics.Domain.Entities.WorkoutPlanExercise", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("DurationMinutes")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ExerciseId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("Reps")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("Sets")
-                        .HasColumnType("int");
-
-                    b.Property<int>("SortOrder")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("WorkoutPlanDayId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ExerciseId");
-
-                    b.HasIndex("WorkoutPlanDayId");
-
-                    b.ToTable("WorkoutPlanExercises");
-                });
-
             modelBuilder.Entity("FitMetrics.Domain.Entities.ChatMessage", b =>
                 {
                     b.HasOne("FitMetrics.Domain.Entities.User", "User")
@@ -992,47 +897,6 @@ namespace FitMetrics.Infrastructure.Persistence.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("FitMetrics.Domain.Entities.WorkoutPlan", b =>
-                {
-                    b.HasOne("FitMetrics.Domain.Entities.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("FitMetrics.Domain.Entities.WorkoutPlanDay", b =>
-                {
-                    b.HasOne("FitMetrics.Domain.Entities.WorkoutPlan", "WorkoutPlan")
-                        .WithMany("Days")
-                        .HasForeignKey("WorkoutPlanId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("WorkoutPlan");
-                });
-
-            modelBuilder.Entity("FitMetrics.Domain.Entities.WorkoutPlanExercise", b =>
-                {
-                    b.HasOne("FitMetrics.Domain.Entities.Exercise", "Exercise")
-                        .WithMany()
-                        .HasForeignKey("ExerciseId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("FitMetrics.Domain.Entities.WorkoutPlanDay", "Day")
-                        .WithMany("Exercises")
-                        .HasForeignKey("WorkoutPlanDayId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Day");
-
-                    b.Navigation("Exercise");
-                });
-
             modelBuilder.Entity("FitMetrics.Domain.Entities.Exercise", b =>
                 {
                     b.Navigation("WorkoutLogs");
@@ -1050,16 +914,6 @@ namespace FitMetrics.Infrastructure.Persistence.Migrations
                     b.Navigation("WeightEntries");
 
                     b.Navigation("WorkoutLogs");
-                });
-
-            modelBuilder.Entity("FitMetrics.Domain.Entities.WorkoutPlan", b =>
-                {
-                    b.Navigation("Days");
-                });
-
-            modelBuilder.Entity("FitMetrics.Domain.Entities.WorkoutPlanDay", b =>
-                {
-                    b.Navigation("Exercises");
                 });
 #pragma warning restore 612, 618
         }

@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { aiApi } from '../api';
-import { tokenStorage } from '../api/client';
 import { Button, Card, ErrorAlert, Icon, Input, PageHeader, Spinner } from '../components/ui';
 import type { ChatMessage } from '../types';
 
@@ -53,10 +52,7 @@ export default function AiAssistant() {
     try {
       const res = await fetch('/api/ai/chat/stream', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${tokenStorage.get() ?? ''}`,
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ messages: base }),
       });
       if (!res.ok || !res.body) {

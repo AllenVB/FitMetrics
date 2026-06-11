@@ -9,6 +9,7 @@ import Workouts from './pages/Workouts';
 import Progress from './pages/Progress';
 import Insights from './pages/Insights';
 import AiCoach from './pages/AiCoach';
+import WorkoutPlanner from './pages/WorkoutPlanner';
 import AiAssistant from './pages/AiAssistant';
 import Knowledge from './pages/Knowledge';
 import Dietitian from './pages/Dietitian';
@@ -25,6 +26,7 @@ export default function App() {
           <Route path="/" element={<Dashboard />} />
           <Route path="/nutrition" element={<Nutrition />} />
           <Route path="/workouts" element={<Workouts />} />
+          <Route path="/workout-planner" element={<WorkoutPlanner />} />
           <Route path="/progress" element={<Progress />} />
           <Route path="/insights" element={<Insights />} />
           <Route path="/ai-coach" element={<AiCoach />} />

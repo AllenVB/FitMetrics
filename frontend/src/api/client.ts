@@ -17,18 +17,9 @@ client.interceptors.request.use((config) => {
   return config;
 });
 
-// 401'de oturumu temizle ve giriş sayfasına yönlendir
 client.interceptors.response.use(
   (res) => res,
-  (error: AxiosError) => {
-    if (error.response?.status === 401 && tokenStorage.get()) {
-      tokenStorage.clear();
-      if (!window.location.pathname.startsWith('/login')) {
-        window.location.href = '/login';
-      }
-    }
-    return Promise.reject(error);
-  },
+  (error: AxiosError) => Promise.reject(error),
 );
 
 export interface ApiError {

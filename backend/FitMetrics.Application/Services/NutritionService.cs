@@ -18,13 +18,16 @@ public class NutritionService : INutritionService
     private readonly IMapper _mapper;
     private readonly IFoodLookupClient _foodLookup;
     private readonly IClaudeClient _claude;
+    private readonly IFatSecretClient _fatSecret;
 
-    public NutritionService(IApplicationDbContext db, IMapper mapper, IFoodLookupClient foodLookup, IClaudeClient claude)
+    public NutritionService(IApplicationDbContext db, IMapper mapper, IFoodLookupClient foodLookup,
+        IClaudeClient claude, IFatSecretClient fatSecret)
     {
-        _db = db;
-        _mapper = mapper;
+        _db       = db;
+        _mapper   = mapper;
         _foodLookup = foodLookup;
-        _claude = claude;
+        _claude   = claude;
+        _fatSecret = fatSecret;
     }
 
     public async Task<List<FoodDto>> GetFoodsAsync(string? search, CancellationToken ct = default)
@@ -138,56 +141,54 @@ public class NutritionService : INutritionService
     {
         var q = query.Trim();
         if (string.IsNullOrWhiteSpace(q)) return [];
-        if (!_claude.IsConfigured)
-            throw new ExternalServiceException("Besin araması için bir AI sağlayıcı (Ollama/Anthropic) gerekli.");
 
-        const string system =
-            "Sen bir beslenme veritabanısın. Kullanıcının aramasıyla eşleşen, BİRBİRİNDEN FARKLI ve GERÇEK yiyecekleri döndür. " +
-            "Aynı yiyeceğin uydurma çeşitlerini/varyantlarını TEKRARLAMA; yalnızca yaygın, bilinen besinler ver. " +
-            "Her sonuç için 100 GRAM başına gerçekçi ortalama değer ver: kalori (kcal), protein (g), karbonhidrat (g), yağ (g). " +
-            "Değerler USDA/TÜİK benzeri ortalamalara dayansın; tahminî olduklarını unutma. Kısa Türkçe ad ve çok kısa açıklama yaz. " +
-            "Marka yoksa boş bırak. En fazla 5 sonuç. Yalnızca istenen JSON şemasına uygun yanıt ver.";
-
-        var userPrompt = $"Arama terimi: \"{q}\". Bu terime uyan en fazla 5 FARKLI gerçek yiyeceği 100g değerleriyle listele.";
-
-        var schema = new
+        // ── 1. FatSecret (gerçek veritabanı, öncelikli) ──────────────────────
+        if (_fatSecret.IsConfigured)
         {
-            type = "object",
-            additionalProperties = false,
-            required = new[] { "results" },
-            properties = new
+            using var fsCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            fsCts.CancelAfter(TimeSpan.FromSeconds(5)); // IP whitelist onaylanmamışsa uzun bekleme
+            try
             {
-                results = new
-                {
-                    type = "array",
-                    items = new
-                    {
-                        type = "object",
-                        additionalProperties = false,
-                        required = new[] { "name", "description", "caloriesPer100g", "proteinPer100g", "carbsPer100g", "fatPer100g" },
-                        properties = new
-                        {
-                            name = new { type = "string" },
-                            brand = new { type = "string" },
-                            description = new { type = "string" },
-                            caloriesPer100g = new { type = "number" },
-                            proteinPer100g = new { type = "number" },
-                            carbsPer100g = new { type = "number" },
-                            fatPer100g = new { type = "number" }
-                        }
-                    }
-                }
+                var fsResults = await _fatSecret.SearchAsync(q, fsCts.Token);
+                var suggestions = fsResults
+                    .Select(r => ParseFatSecretDescription(r.Name, r.Brand, r.Description))
+                    .Where(s => s is not null && s.CaloriesPer100g > 0)
+                    .Take(8)
+                    .ToList();
+
+                if (suggestions.Count > 0)
+                    return suggestions!;
             }
-        };
+            catch
+            {
+                // FatSecret başarısız veya timeout → AI'a düş
+            }
+        }
 
-        var json = await _claude.CompleteJsonAsync(system, userPrompt, schema,
-            new ClaudeOptions(MaxTokens: 1000, Thinking: false), ct);
+        // ── 2. AI yedek (Ollama / Anthropic) ─────────────────────────────────
+        if (!_claude.IsConfigured)
+            throw new ExternalServiceException(
+                "Besin araması için FatSecret veya bir AI sağlayıcı (Ollama/Anthropic) gerekli.");
 
-        AiSearchWrapper? parsed;
-        try { parsed = JsonSerializer.Deserialize<AiSearchWrapper>(json, JsonOpts); }
+        // Constrained JSON decoding (CompleteJsonAsync) yerine free-text kullan;
+        // Ollama ile ~5s vs ~70s. JSON'ı metin içinden extract et.
+        // Sadece 3 sonuç, kısa description → az token → hızlı
+        const string system = "Beslenme DB. Sadece JSON array döndür:\n" +
+            "[{\"name\":\"Ad\",\"brand\":null,\"description\":\"Kısa açıklama\",\"caloriesPer100g\":0,\"proteinPer100g\":0,\"carbsPer100g\":0,\"fatPer100g\":0}]";
+
+        var userPrompt = $"'{q}' için 3 farklı besin, 100g USDA, sadece JSON array:";
+
+        var rawText = await _claude.CompleteTextAsync(system, userPrompt,
+            new ClaudeOptions(MaxTokens: 250, Thinking: false), ct);
+
+        // JSON array'ı metin içinden çıkar
+        var json = ExtractJsonArray(rawText);
+
+        List<AiSearchItem>? parsed;
+        try { parsed = JsonSerializer.Deserialize<List<AiSearchItem>>(json, JsonOpts); }
         catch (JsonException) { throw new ExternalServiceException("AI besin yanıtı çözümlenemedi."); }
 
-        return (parsed?.Results ?? [])
+        return (parsed ?? [])
             .Where(r => !string.IsNullOrWhiteSpace(r.Name))
             .Select(r => new AiFoodSuggestion(
                 r.Name.Trim(),
@@ -201,10 +202,68 @@ public class NutritionService : INutritionService
             .ToList();
     }
 
-    private sealed record AiSearchWrapper(List<AiSearchItem>? Results);
-    private sealed record AiSearchItem(
-        string Name, string? Brand, string? Description,
-        double CaloriesPer100g, double ProteinPer100g, double CarbsPer100g, double FatPer100g);
+    /// <summary>
+    /// FatSecret'in "Per 100g - Calories: 165kcal | Fat: 3.57g | Carbs: 0.00g | Protein: 31.02g"
+    /// formatındaki description'ını parse eder. Farklı porsiyon boyutlarını 100g'a normalize eder.
+    /// </summary>
+    private static AiFoodSuggestion? ParseFatSecretDescription(string name, string? brand, string description)
+    {
+        if (string.IsNullOrWhiteSpace(description)) return null;
+
+        // Porsiyon miktarını bul: "Per 100g", "Per 1 serving (85g)", "Per 1 cup (240ml)" vb.
+        double normFactor = 1.0;
+        var perMatch = System.Text.RegularExpressions.Regex.Match(
+            description, @"Per\s+[\d.,]+\s+\w+\s+\(([\d.,]+)\s*[gm]", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+        if (perMatch.Success && double.TryParse(perMatch.Groups[1].Value,
+                System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var servingG)
+            && servingG > 0)
+        {
+            normFactor = 100.0 / servingG;
+        }
+
+        double cal     = ParseNutrient(description, @"Calories:\s*([\d.,]+)");
+        double fat     = ParseNutrient(description, @"Fat:\s*([\d.,]+)");
+        double carbs   = ParseNutrient(description, @"Carbs:\s*([\d.,]+)");
+        double protein = ParseNutrient(description, @"Protein:\s*([\d.,]+)");
+
+        if (cal <= 0) return null;
+
+        return new AiFoodSuggestion(
+            name.Trim(),
+            string.IsNullOrWhiteSpace(brand) ? null : brand.Trim(),
+            description.Length > 80 ? description[..80] : description,
+            Math.Round(cal     * normFactor, 1),
+            Math.Round(protein * normFactor, 1),
+            Math.Round(carbs   * normFactor, 1),
+            Math.Round(fat     * normFactor, 1));
+    }
+
+    private static double ParseNutrient(string text, string pattern)
+    {
+        var m = System.Text.RegularExpressions.Regex.Match(text, pattern, System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+        if (!m.Success) return 0;
+        return double.TryParse(m.Groups[1].Value,
+            System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var v) ? v : 0;
+    }
+
+    /// <summary>Metin içindeki ilk JSON array'ı ([ ... ]) bulur; yoksa boş array döner.</summary>
+    private static string ExtractJsonArray(string text)
+    {
+        var start = text.IndexOf('[');
+        var end   = text.LastIndexOf(']');
+        return start >= 0 && end > start ? text[start..(end + 1)] : "[]";
+    }
+
+    private sealed class AiSearchItem
+    {
+        public string Name { get; set; } = "";
+        public string? Brand { get; set; }
+        public string? Description { get; set; }
+        public double CaloriesPer100g { get; set; }
+        public double ProteinPer100g { get; set; }
+        public double CarbsPer100g { get; set; }
+        public double FatPer100g { get; set; }
+    }
 
     /// <summary>Bir öğün kaydını, besinin 100g değerlerini tüketilen gram miktarına ölçekleyerek DTO'ya çevirir.</summary>
     private static NutritionLogDto ToDto(NutritionLog log, Food food)

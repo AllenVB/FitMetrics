@@ -19,6 +19,9 @@ public interface IApplicationDbContext
     DbSet<KnowledgeEntry> KnowledgeEntries { get; }
     DbSet<WaterLog> WaterLogs { get; }
     DbSet<ChatMessage> ChatMessages { get; }
+    DbSet<WorkoutPlan> WorkoutPlans { get; }
+    DbSet<WorkoutPlanDay> WorkoutPlanDays { get; }
+    DbSet<WorkoutPlanExercise> WorkoutPlanExercises { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

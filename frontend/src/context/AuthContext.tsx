@@ -1,7 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
-import { authApi } from '../api';
-import { tokenStorage } from '../api/client';
-import type { AuthResponse, RegisterRequest, User } from '../types';
+import { profileApi } from '../api';
+import type { RegisterRequest, User } from '../types';
 
 interface AuthContextValue {
   user: User | null;
@@ -19,34 +18,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = tokenStorage.get();
-    if (!token) {
-      setLoading(false);
-      return;
-    }
-    authApi.me()
+    // Test modunda: token olmadan profili yükle (backend auth gerektirmiyor)
+    profileApi.get()
       .then(setUser)
-      .catch(() => tokenStorage.clear())
+      .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
 
-  const handleAuth = (res: AuthResponse) => {
-    tokenStorage.set(res.token);
-    setUser(res.user);
-  };
-
-  const login = async (email: string, password: string) => {
-    handleAuth(await authApi.login(email, password));
-  };
-
-  const register = async (payload: RegisterRequest) => {
-    handleAuth(await authApi.register(payload));
-  };
-
-  const logout = () => {
-    tokenStorage.clear();
-    setUser(null);
-  };
+  // Test modunda login/register/logout işlemsiz
+  const login = async (_email: string, _password: string) => {};
+  const register = async (_payload: RegisterRequest) => {};
+  const logout = () => {};
 
   return (
     <AuthContext.Provider value={{ user, loading, login, register, logout, updateUser: setUser }}>

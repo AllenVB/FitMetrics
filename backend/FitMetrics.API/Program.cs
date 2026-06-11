@@ -86,6 +86,39 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     db.Database.Migrate();
+
+    // Test modu: kullanıcı yoksa otomatik test kullanıcısı oluştur
+    if (!db.Users.Any())
+    {
+        var hasher = scope.ServiceProvider.GetRequiredService<FitMetrics.Application.Common.Interfaces.IPasswordHasher>();
+        var tdee = FitMetrics.Application.Common.Helpers.HealthCalculator.CalculateTdee(
+            FitMetrics.Domain.Enums.Gender.Male, 75, 175, 25, FitMetrics.Domain.Enums.ActivityLevel.Moderate);
+        var testUser = new FitMetrics.Domain.Entities.User
+        {
+            FullName = "Test Kullanıcı",
+            Email = "test@fitmetrics.com",
+            PasswordHash = hasher.Hash("test123"),
+            Age = 25,
+            Gender = FitMetrics.Domain.Enums.Gender.Male,
+            HeightCm = 175,
+            CurrentWeightKg = 75,
+            ActivityLevel = FitMetrics.Domain.Enums.ActivityLevel.Moderate,
+            GoalType = FitMetrics.Domain.Enums.GoalType.MaintainWeight,
+            DailyCalorieGoal = FitMetrics.Application.Common.Helpers.HealthCalculator.CalculateCalorieGoal(
+                FitMetrics.Domain.Enums.GoalType.MaintainWeight, tdee),
+            DailyProteinGoal = FitMetrics.Application.Common.Helpers.HealthCalculator.CalculateProteinGoal(
+                FitMetrics.Domain.Enums.GoalType.MaintainWeight, 75),
+        };
+        db.Users.Add(testUser);
+        db.SaveChanges();
+        db.WeightEntries.Add(new FitMetrics.Domain.Entities.WeightEntry
+        {
+            UserId = testUser.Id,
+            WeightKg = 75,
+            RecordedAt = DateTime.UtcNow
+        });
+        db.SaveChanges();
+    }
 }
 
 if (app.Environment.IsDevelopment())

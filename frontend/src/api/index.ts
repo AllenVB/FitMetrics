@@ -134,6 +134,18 @@ export const reportsApi = {
   },
 };
 
+export interface SavePlanExercise { exerciseId: number; sets?: number | null; reps?: number | null; durationMinutes?: number | null; sortOrder: number; }
+export interface SavePlanDay { dayIndex: number; exercises: SavePlanExercise[]; }
+export interface SavePlanRequest { name: string; days: SavePlanDay[]; }
+
+export const workoutPlanApi = {
+  getAll: () => client.get<import('../types').WorkoutPlanSummary[]>('/workout-plan').then(r => r.data),
+  getById: (id: number) => client.get<import('../types').WorkoutPlanDetail>(`/workout-plan/${id}`).then(r => r.data),
+  create: (payload: SavePlanRequest) => client.post<import('../types').WorkoutPlanDetail>('/workout-plan', payload).then(r => r.data),
+  update: (id: number, payload: SavePlanRequest) => client.put<import('../types').WorkoutPlanDetail>(`/workout-plan/${id}`, payload).then(r => r.data),
+  remove: (id: number) => client.delete(`/workout-plan/${id}`),
+};
+
 export const dietitianApi = {
   enroll: () => client.post<User>('/dietitian/enroll').then((r) => r.data),
   clients: () => client.get<ClientSummary[]>('/dietitian/clients').then((r) => r.data),
