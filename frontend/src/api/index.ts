@@ -146,6 +146,22 @@ export const workoutPlanApi = {
   remove: (id: number) => client.delete(`/workout-plan/${id}`),
 };
 
+export interface CreateBodyMeasurementRequest {
+  recordedAt?: string | null;
+  waistCm?: number | null;
+  hipCm?: number | null;
+  chestCm?: number | null;
+  armCm?: number | null;
+  neckCm?: number | null;
+  notes?: string | null;
+}
+
+export const measurementsApi = {
+  getHistory: () => client.get<import('../types').BodyMeasurement[]>('/measurements').then(r => r.data),
+  add: (payload: CreateBodyMeasurementRequest) => client.post<import('../types').BodyMeasurement>('/measurements', payload).then(r => r.data),
+  remove: (id: number) => client.delete(`/measurements/${id}`),
+};
+
 export const dietitianApi = {
   enroll: () => client.post<User>('/dietitian/enroll').then((r) => r.data),
   clients: () => client.get<ClientSummary[]>('/dietitian/clients').then((r) => r.data),

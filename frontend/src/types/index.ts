@@ -138,6 +138,17 @@ export interface WeightEntry {
   recordedAt: string;
 }
 
+export interface BodyMeasurement {
+  id: number;
+  recordedAt: string;
+  waistCm?: number | null;
+  hipCm?: number | null;
+  chestCm?: number | null;
+  armCm?: number | null;
+  neckCm?: number | null;
+  notes?: string | null;
+}
+
 export interface DailyCaloriePoint {
   date: string;
   calories: number;

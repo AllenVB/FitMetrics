@@ -22,6 +22,7 @@ public interface IApplicationDbContext
     DbSet<WorkoutPlan> WorkoutPlans { get; }
     DbSet<WorkoutPlanDay> WorkoutPlanDays { get; }
     DbSet<WorkoutPlanExercise> WorkoutPlanExercises { get; }
+    DbSet<BodyMeasurement> BodyMeasurements { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

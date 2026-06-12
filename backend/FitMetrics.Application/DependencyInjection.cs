@@ -38,6 +38,7 @@ public static class DependencyInjection
         services.AddScoped<IWaterService, WaterService>();
         services.AddScoped<IChatHistoryService, ChatHistoryService>();
         services.AddScoped<IWorkoutPlanService, WorkoutPlanService>();
+        services.AddScoped<IBodyMeasurementService, BodyMeasurementService>();
 
         return services;
     }
